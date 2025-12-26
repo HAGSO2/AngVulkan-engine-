@@ -1,5 +1,5 @@
 {
-  "workbench.colorTheme": "Gruvbox Dark (Hard)",
+  "workbench.colorTheme": "JetBrains Rider Dark Theme",
   "xmlTools.enforcePrettySelfClosingTagOnFormat": true,
   "editor.minimap.enabled": false,
   "terminal.integrated.shell.windows": "c:/Program Files/PowerShell/7/pwsh.exe",
@@ -45,7 +45,7 @@
     "color": "red",
     "backgroundColor": "#ffab00",
     "overviewRulerColor": "rgba(0,0,0,0)",
-    "isWholeLine": false
+    "isWholeLine": true
   },
   "files.associations": {
     "test.h": "c",
