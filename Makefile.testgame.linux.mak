@@ -4,9 +4,10 @@ OBJ_DIR := obj
 
 ASSEMBLY := testgame
 EXTENSION := 
-COMPILER_FLAGS := -g -MD -Werror=vla -fdeclspec -fPIC
-INCLUDE_FLAGS := -Iengine/src -Itestbed\src 
-LINKER_FLAGS := -L./$(BUILD_DIR)/ -lengine -Wl,-rpath,.
+CXX := clang
+COMPILER_FLAGS := -std=c++17 -g -fdeclspec -fPIC
+INCLUDE_FLAGS := -Iengine/src -I$(VULKAN_SDK)\include
+LINKER_FLAGS := -L../$(BUILD_DIR)/ -lengine -Wl,-rpath,'$$ORIGIN'
 DEFINES := -D_DEBUG -DKIMPORT
 
 # Make does not offer a recursive wildcard function, so here's one:
@@ -27,7 +28,7 @@ scaffold: # create build directory
 .PHONY: link
 link: scaffold $(OBJ_FILES) # link
 	@echo Linking $(ASSEMBLY)...
-	clang $(OBJ_FILES) -o $(BUILD_DIR)/$(ASSEMBLY)$(EXTENSION) $(LINKER_FLAGS)
+	@$(CXX) $(OBJ_FILES) -o $(BUILD_DIR)/$(ASSEMBLY)$(EXTENSION) $(LINKER_FLAGS)
 
 .PHONY: compile
 compile: #compile .cpp files
@@ -40,6 +41,4 @@ clean: # clean build directory
 
 $(OBJ_DIR)/%.cpp.o: %.cpp # compile .cpp to .o object
 	@echo   $<...
-	@clang $< $(COMPILER_FLAGS) -c -o $@ $(DEFINES) $(INCLUDE_FLAGS)
-
--include $(OBJ_FILES:.o=.d)
+	@$(CXX) $< $(COMPILER_FLAGS) -c -o $@ $(DEFINES) $(INCLUDE_FLAGS)

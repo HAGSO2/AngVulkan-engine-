@@ -1,28 +1,51 @@
 #pragma once
 
 #include "defines.h"
+#include "game_types.h"
+#include "platform/platform.h"
+#include <string>
+using namespace std;
 
-struct game;
+typedef struct application_state {
+    Game* game_inst;
+    b8 is_running;
+    b8 is_suspended;
+    platform_state platform;
+    i16 width;
+    i16 height;
+    f64 last_time;
+    application_state(Game* instance);
+} application_state;
 
-// Application configuration.
 typedef struct application_config {
-    // Window starting position x axis, if applicable.
-    i16 start_pos_x;
+        // Window starting position x axis, if applicable.
+        i16 start_pos_x;
 
-    // Window starting position y axis, if applicable.
-    i16 start_pos_y;
+        // Window starting position y axis, if applicable.
+        i16 start_pos_y;
 
-    // Window starting width, if applicable.
-    i16 start_width;
+        // Window starting width, if applicable.
+        i16 start_width;
 
-    // Window starting height, if applicable.
-    i16 start_height;
+        // Window starting height, if applicable.
+        i16 start_height;
 
-    // The application name used in windowing, if applicable.
-    char* name;
-} application_config;
+        // The application name used in windowing, if applicable.
+        string name;
+        application_config(i16 m_start_pos_x,i16 m_start_pos_y,i16 m_start_width,i16 m_start_height, string m_name);
+    } application_config;
 
+class Application{
+    b8 initialized;
 
-KAPI b8 application_create(struct game* game_inst);
+    application_config app_config;
+    application_state app_state;
 
-KAPI b8 application_run();
+public:
+    
+    Application(i16 start_pos_x,i16 start_pos_y,i16 start_width,i16 start_height, string name);
+
+    b8 application_create(Game* game_inst);
+
+    b8 application_run();
+};

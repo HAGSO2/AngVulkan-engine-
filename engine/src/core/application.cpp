@@ -1,24 +1,17 @@
 #include "application.h"
 #include "game_types.h"
-
 #include "logger.h"
-
 #include "platform/platform.h"
 
-typedef struct application_state {
-    game* game_inst;
-    b8 is_running;
-    b8 is_suspended;
-    platform_state platform;
-    i16 width;
-    i16 height;
-    f64 last_time;
-} application_state;
+application_state::application_state(Game* g): game_inst{g},is_running{FALSE}, is_suspended{FALSE}, platform{0}, width{0}, height{0}, last_time{0}{};
 
-static b8 initialized = FALSE;
-static application_state app_state;
+application_config::application_config(i16 m_start_pos_x,i16 m_start_pos_y,i16 m_start_width,i16 m_start_height, string m_name):
+start_pos_x{m_start_pos_x}, start_pos_y{m_start_pos_y},start_width{m_start_width}, start_height{m_start_height}, name{m_name} {};
 
-b8 application_create(game* game_inst) {
+Application::Application(i16 start_pos_x,i16 start_pos_y,i16 start_width,i16 start_height, string name):
+app_config(start_pos_x,start_pos_y,start_width,start_height, name), initialized{FALSE}, app_state{0} {};
+
+b8 Application::application_create(Game* game_inst) {
     if (initialized) {
         KERROR("application_create called more than once.");
         return FALSE;
@@ -42,11 +35,11 @@ b8 application_create(game* game_inst) {
 
     if (!platform_startup(
             &app_state.platform,
-            game_inst->app_config.name,
-            game_inst->app_config.start_pos_x,
-            game_inst->app_config.start_pos_y,
-            game_inst->app_config.start_width,
-            game_inst->app_config.start_height)) {
+            app_config.name.c_str(),
+            app_config.start_pos_x,
+            app_config.start_pos_y,
+            app_config.start_width,
+            app_config.start_height)) {
         return FALSE;
     }
 
@@ -63,7 +56,7 @@ b8 application_create(game* game_inst) {
     return TRUE;
 }
 
-b8 application_run() {
+b8 Application::application_run() {
     while (app_state.is_running) {
         if(!platform_pump_messages(&app_state.platform)) {
             app_state.is_running = FALSE;

@@ -5,7 +5,9 @@ set echo on
 echo "Building everything..."
 
 
-make -f Makefile.engine.linux.mak all
+pushd engine
+source build.sh
+popd
 
 ERRORLEVEL=$?
 if [ $ERRORLEVEL -ne 0 ]
@@ -13,14 +15,9 @@ then
 echo "Error:"$ERRORLEVEL && exit
 fi
 
-make -f Makefile.testgame.linux.mak all
-ERRORLEVEL=$?
-if [ $ERRORLEVEL -ne 0 ]
-then
-echo "Error:"$ERRORLEVEL && exit
-fi
-
-make -f Makefile.tests.linux.mak all
+pushd testgame
+source build.sh
+popd
 ERRORLEVEL=$?
 if [ $ERRORLEVEL -ne 0 ]
 then
