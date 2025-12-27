@@ -43,9 +43,12 @@ class Application{
 
 public:
     
+    
     Application(i16 start_pos_x,i16 start_pos_y,i16 start_width,i16 start_height, string name);
 
     b8 application_create(Game* game_inst);
 
     b8 application_run();
+
+    application_state* GetState() {return &app_state;}
 };
