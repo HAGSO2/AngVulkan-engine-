@@ -4,10 +4,15 @@
 typedef struct registered_event {
     void* listener;
     PFN_on_event callback;
+    registered_event();
+    registered_event(void* l, PFN_on_event c);
 } registered_event;
 
+registered_event::registered_event(): listener{0}, callback{0} {};
+registered_event::registered_event(void* l, PFN_on_event c): listener{l}, callback{c} {};
+
 typedef struct event_code_entry {
-    vector<registered_event> events;
+    vector<registered_event*> events;
     event_code_entry();
 } event_code_entry;
 
@@ -22,7 +27,7 @@ typedef struct event_system_state {
     event_system_state();
 } event_system_state;
 
-event_code_entry::event_code_entry(): events{vector<registered_event>()}{};
+event_code_entry::event_code_entry(): events{vector<registered_event*>()}{};
 
 event_system_state::event_system_state():registered{event_code_entry()}, is_initialized{TRUE}{};
 
@@ -56,16 +61,16 @@ b8 event_register(u16 code, void* listener, PFN_on_event on_event) {
     }
 
     for(u64 i = 0; i < state.registered[code].events.size(); ++i) {
-        if(state.registered[code].events[i].listener == listener) {
+        if(state.registered[code].events[i]->listener == listener) {
             KWARN("Event already registered");
             return FALSE;
         }
     }
 
     // If at this point, no duplicate was found. Proceed with registration.
-    registered_event event = {0};
-    event.listener = listener;
-    event.callback = on_event;
+    registered_event* event = new registered_event(listener, on_event);
+    //event->listener = listener;
+    //event->callback = on_event;
     state.registered[code].events.push_back(event);
     //KDEBUG("Number of events registered for %d: %d",code,state.registered[code].events.size() );
     //KDEBUG("Event registered!");
@@ -85,8 +90,8 @@ b8 event_unregister(u16 code, void* listener, PFN_on_event on_event) {
     }
 
     for(u64 i = 0; i < state.registered[code].events.size(); ++i) {
-        registered_event e = state.registered[code].events[i];
-        if(e.listener == listener && e.callback == on_event) {
+        registered_event* e = state.registered[code].events[i];
+        if(e->listener == listener && e->callback == on_event) {
             // Found one, remove it
             state.registered[code].events.erase(state.registered[code].events.begin()+i);
             return TRUE;
@@ -109,8 +114,8 @@ b8 event_fire(u16 code, void* sender, event_context context) {
     }
 
     for(u64 i = 0; i < state.registered[code].events.size(); ++i) {
-        registered_event e = state.registered[code].events[i];
-        if(e.callback(code, sender, e.listener, context)) {
+        registered_event* e = state.registered[code].events[i];
+        if(e->callback(code, sender, e->listener, context)) {
             // Message has been handled, do not send to other listeners.
             return TRUE;
         }
