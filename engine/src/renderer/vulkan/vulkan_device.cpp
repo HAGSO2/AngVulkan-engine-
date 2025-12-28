@@ -63,13 +63,15 @@ b8 vulkan_device_create(vulkan_context* context, vulkan_options* options) {
         queue_create_infos[i].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         queue_create_infos[i].queueFamilyIndex = indices[i];
         queue_create_infos[i].queueCount = 1;
-        if (indices[i] == context->device.graphics_queue_index) {
-            queue_create_infos[i].queueCount = 2;
-        }
+        //TODO: investigar sobre como debe ser esto
+        // if (indices[i] == context->device.graphics_queue_index) {
+        //     queue_create_infos[i].queueCount = 1;
+        // }
         queue_create_infos[i].flags = 0;
         queue_create_infos[i].pNext = 0;
         f32 queue_priority = 1.0f;
         queue_create_infos[i].pQueuePriorities = &queue_priority;
+        //TODO: este valor debe oscilar entre 0 y 1
     }
 
     // Request device features.

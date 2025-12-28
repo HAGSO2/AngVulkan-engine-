@@ -107,13 +107,15 @@ b8 Application::application_run() {
     event_unregister(EVENT_CODE_KEY_RELEASED, 0, application_on_key);
     event_shutdown();
     input_shutdown();
+
+    renderer_shutdown();
+
     platform_shutdown(&app_state.platform);
 
     return TRUE;
 }
 
 b8 application_on_event(u16 code, void* sender, void* listener_inst, event_context context) {
-    KDEBUG("Event quit called!");
     switch (code) {
         case EVENT_CODE_APPLICATION_QUIT: {
             KINFO("EVENT_CODE_APPLICATION_QUIT recieved, shutting down.\n");
@@ -127,7 +129,6 @@ b8 application_on_event(u16 code, void* sender, void* listener_inst, event_conte
 }
 
 b8 application_on_key(u16 code, void* sender, void* listener_inst, event_context context) {
-    KDEBUG("Event key called!");
     if (code == EVENT_CODE_KEY_PRESSED) {
         u16 key_code = context.data.u16[0];
         if (key_code == KEY_ESCAPE) {
