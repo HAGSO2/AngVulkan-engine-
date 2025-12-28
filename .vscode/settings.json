@@ -1,7 +1,7 @@
 {
   "workbench.colorTheme": "JetBrains Rider Dark Theme",
   "xmlTools.enforcePrettySelfClosingTagOnFormat": true,
-  "editor.minimap.enabled": false,
+  "editor.minimap.enabled": true,
   "terminal.integrated.shell.windows": "c:/Program Files/PowerShell/7/pwsh.exe",
   "terminal.integrated.fontWeight": "1",
   "editor.fontFamily": "Liberation Mono",

@@ -3,13 +3,16 @@
 
 #include "core/event.h"
 #include "core/input.h"
+
+#include "renderer/renderer_frontend.h"
+
 application_state::application_state(Game* g): game_inst{g},is_running{FALSE}, is_suspended{FALSE}, platform{0}, width{0}, height{0}, last_time{0}{};
 
-application_config::application_config(i16 m_start_pos_x,i16 m_start_pos_y,i16 m_start_width,i16 m_start_height, string m_name):
-start_pos_x{m_start_pos_x}, start_pos_y{m_start_pos_y},start_width{m_start_width}, start_height{m_start_height}, name{m_name} {};
+application_config::application_config(i16 m_start_pos_x,i16 m_start_pos_y,i16 m_start_width,i16 m_start_height, string m_name, string m_engine):
+start_pos_x{m_start_pos_x}, start_pos_y{m_start_pos_y},start_width{m_start_width}, start_height{m_start_height}, name{m_name}, engine{m_engine} {};
 
-Application::Application(i16 start_pos_x,i16 start_pos_y,i16 start_width,i16 start_height, string name):
-app_config(start_pos_x,start_pos_y,start_width,start_height, name), initialized{FALSE}, app_state{0} {};
+Application::Application(i16 start_pos_x,i16 start_pos_y,i16 start_width,i16 start_height, string name, string engine, vulkan_options* opt):
+app_config(start_pos_x,start_pos_y,start_width,start_height, name, engine), initialized{FALSE}, vlk_opt{opt} , app_state{0} {};
 
 // Event handlers
 b8 application_on_event(u16 code, void* sender, void* listener_inst, event_context context);
@@ -46,6 +49,12 @@ b8 Application::application_create(Game* game_inst) {
             app_config.start_pos_y,
             app_config.start_width,
             app_config.start_height)) {
+        return FALSE;
+    }
+
+    // Renderer startup
+    if (!renderer_initialize(app_config.name.c_str(), app_config.engine.c_str(), &app_state.platform, vlk_opt)) {
+        KFATAL("Failed to initialize renderer. Aborting application.");
         return FALSE;
     }
 

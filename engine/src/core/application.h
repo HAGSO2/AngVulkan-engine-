@@ -3,6 +3,7 @@
 #include "defines.h"
 #include "game_types.h"
 #include "platform/platform.h"
+#include "config/renderer_options.h"
 #include <string>
 using namespace std;
 
@@ -32,7 +33,9 @@ typedef struct application_config {
 
         // The application name used in windowing, if applicable.
         string name;
-        application_config(i16 m_start_pos_x,i16 m_start_pos_y,i16 m_start_width,i16 m_start_height, string m_name);
+        //The application engine
+        string engine;
+        application_config(i16 m_start_pos_x,i16 m_start_pos_y,i16 m_start_width,i16 m_start_height, string m_name, string m_engine);
     } application_config;
 
 class Application{
@@ -41,14 +44,18 @@ class Application{
     application_config app_config;
     application_state app_state;
 
+    vulkan_options *vlk_opt;
+
 public:
     
     
-    Application(i16 start_pos_x,i16 start_pos_y,i16 start_width,i16 start_height, string name);
+    Application(i16 start_pos_x,i16 start_pos_y,i16 start_width,i16 start_height, string name, string engine, vulkan_options* opt);
 
     b8 application_create(Game* game_inst);
 
     b8 application_run();
 
     application_state* GetState() {return &app_state;}
+    string GetName() {return app_config.name;}
+    string GetEngineName() {return app_config.engine;}
 };

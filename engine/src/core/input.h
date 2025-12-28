@@ -12,6 +12,7 @@ typedef enum buttons {
 #define DEFINE_KEY(name, code) KEY_##name = code
 
 typedef enum keys {
+    DEFINE_KEY(NONE, 0x0),
     DEFINE_KEY(BACKSPACE, 0x08),
     DEFINE_KEY(ENTER, 0x0D),
     DEFINE_KEY(TAB, 0x09),
