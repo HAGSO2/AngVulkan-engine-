@@ -122,6 +122,10 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
         context.framebuffer_height,
         &context.swapchain);
 
+    VkCommandPoolCreateInfo poolInfo = {};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.queueFamilyIndex = context.device.graphics_queue_index;
+    vkCreateCommandPool(context.device.logical_device,&poolInfo,context.allocator,&context.device.graphics_command_pool);
 
     KINFO("Vulkan renderer initialized successfully.");
     return TRUE;
@@ -159,6 +163,67 @@ void vulkan_renderer_backend_on_resized(renderer_backend* backend, u16 width, u1
 }
 
 b8 vulkan_renderer_backend_begin_frame(renderer_backend* backend, f32 delta_time) {
+
+    // Acquire the next image from the swap chain. Pass along the semaphore that should signaled when this completes.
+    // This same semaphore will later be waited on by the queue submission to ensure this image is available.
+    if (!vulkan_swapchain_acquire_next_image_index(
+            &context,
+            &context.swapchain,
+            0,
+            0,
+            0,
+            &context.image_index)) {
+        return FALSE;
+    }
+
+    //Rendering commands
+    VkCommandBuffer cmd;
+    VkCommandBufferAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.commandBufferCount = 1;
+    allocInfo.commandPool = context.device.graphics_command_pool;
+    VK_CHECK(vkAllocateCommandBuffers(context.device.logical_device, &allocInfo ,&cmd));
+
+    VkCommandBufferBeginInfo begin_info = {};
+    begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    VK_CHECK(vkBeginCommandBuffer(cmd, &begin_info));
+    
+    VK_CHECK(vkEndCommandBuffer(cmd));
+
+    
+
+    // Submit the queue
+    VkSubmitInfo submit_info = {};
+    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submit_info.commandBufferCount = 1;
+    //submit_info.pCommandBuffers = &command_buffer->handle;
+    submit_info.pCommandBuffers = &cmd;
+    VK_CHECK(vkQueueSubmit(context.device.graphics_queue, 1, &submit_info, 0));
+
+    // Wait for it to finish
+    //VK_CHECK(vkQueueWaitIdle(queue));
+
+    // if (!vulkan_swapchain_acquire_next_image_index(
+    //         &context,
+    //         &context.swapchain,
+    //         UINT64_MAX,
+    //         context.image_available_semaphores[context.current_frame],
+    //         0,
+    //         &context.image_index)) {
+    //     return FALSE;
+    // }
+
+    VkPresentInfoKHR present_info = {};
+    present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    present_info.swapchainCount = 1;
+    present_info.pSwapchains = &context.swapchain.handle;
+    present_info.pImageIndices = &context.image_index;
+
+    VK_CHECK(vkQueuePresentKHR(context.device.present_queue, &present_info));
+    vkDeviceWaitIdle(context.device.logical_device);
+    vkFreeCommandBuffers(context.device.logical_device, context.device.graphics_command_pool,1,&cmd);
+
     return TRUE;
 }
 

@@ -33,6 +33,8 @@ typedef struct vulkan_device {
     VkQueue present_queue;
     VkQueue transfer_queue;
 
+    VkCommandPool graphics_command_pool;
+
     VkPhysicalDeviceProperties properties;
     VkPhysicalDeviceFeatures features;
     VkPhysicalDeviceMemoryProperties memory;

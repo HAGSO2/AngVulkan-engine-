@@ -1,9 +1,11 @@
 #pragma once
 
 #include "defines.h"
+#include "core/clock.h"
 #include "game_types.h"
 #include "platform/platform.h"
 #include "config/renderer_options.h"
+
 #include <string>
 using namespace std;
 
@@ -15,6 +17,7 @@ typedef struct application_state {
     i16 width;
     i16 height;
     f64 last_time;
+    clock clock;
     application_state(Game* instance);
 } application_state;
 

@@ -6,7 +6,8 @@
 
 #include "renderer/renderer_frontend.h"
 
-application_state::application_state(Game* g): game_inst{g},is_running{FALSE}, is_suspended{FALSE}, platform{0}, width{0}, height{0}, last_time{0}{};
+application_state::application_state(Game* g): game_inst{g},is_running{FALSE}, is_suspended{FALSE}, platform{0}, width{0}, height{0},
+ last_time{0}, clock(){};
 
 application_config::application_config(i16 m_start_pos_x,i16 m_start_pos_y,i16 m_start_width,i16 m_start_height, string m_name, string m_engine):
 start_pos_x{m_start_pos_x}, start_pos_y{m_start_pos_y},start_width{m_start_width}, start_height{m_start_height}, name{m_name}, engine{m_engine} {};
@@ -72,30 +73,66 @@ b8 Application::application_create(Game* game_inst) {
 }
 
 b8 Application::application_run() {
+    app_state.clock.clock_start();
+    app_state.last_time = app_state.clock.clock_update();
+    f64 running_time = 0;
+    u8 frame_count = 0;
+    f64 target_frame_seconds = 1.0f / 60;
+
     while (app_state.is_running) {
         if(!platform_pump_messages(&app_state.platform)) {
             app_state.is_running = FALSE;
         }
 
         if(!app_state.is_suspended) {
-            if (!app_state.game_inst->update(app_state.game_inst, (f32)0)) {
+            // Update clock and get delta time.
+            f64 current_time = app_state.clock.clock_update();
+            f64 delta = (current_time - app_state.last_time);
+            f64 frame_start_time = platform_get_absolute_time();
+
+            if (!app_state.game_inst->update(app_state.game_inst, (f32)delta)) {
                 KFATAL("Game update failed, shutting down.");
                 app_state.is_running = FALSE;
                 break;
             }
 
             // Call the game's render routine.
-            if (!app_state.game_inst->render(app_state.game_inst, (f32)0)) {
+            if (!app_state.game_inst->render(app_state.game_inst, (f32)delta)) {
                 KFATAL("Game render failed, shutting down.");
                 app_state.is_running = FALSE;
                 break;
+            }
+
+            render_packet packet;
+            packet.delta_time = delta;
+            renderer_draw_frame(&packet);
+
+            // Figure out how long the frame took and, if below
+            f64 frame_end_time = platform_get_absolute_time();
+            f64 frame_elapsed_time = frame_end_time - frame_start_time;
+            running_time += frame_elapsed_time;
+            f64 remaining_seconds = target_frame_seconds - frame_elapsed_time;
+
+            if (remaining_seconds > 0) {
+                u64 remaining_ms = (remaining_seconds * 1000);
+
+                // If there is time left, give it back to the OS.
+                b8 limit_frames = FALSE;
+                if (remaining_ms > 0 && limit_frames) {
+                    platform_sleep(remaining_ms - 1);
+                }
+
+                frame_count++;
             }
 
             // NOTE: Input update/state copying should always be handled
             // after any input should be recorded; I.E. before this line.
             // As a safety, input is the last thing to be updated before
             // this frame ends.
-            input_update(0);
+            input_update(delta);
+
+            // Update last time
+            app_state.last_time = current_time;
         }
     }
 

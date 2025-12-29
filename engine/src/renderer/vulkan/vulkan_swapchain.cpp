@@ -69,7 +69,8 @@ void vulkan_swapchain_present(
     u32 present_image_index) {
 
     // Return the image to the swapchain for presentation.
-    VkPresentInfoKHR present_info = {VK_STRUCTURE_TYPE_PRESENT_INFO_KHR};
+    VkPresentInfoKHR present_info = {};
+    present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     present_info.waitSemaphoreCount = 1;
     present_info.pWaitSemaphores = &render_complete_semaphore;
     present_info.swapchainCount = 1;
@@ -77,13 +78,15 @@ void vulkan_swapchain_present(
     present_info.pImageIndices = &present_image_index;
     present_info.pResults = 0;
 
-    VkResult result = vkQueuePresentKHR(present_queue, &present_info);
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
-        // Swapchain is out of date, suboptimal or a framebuffer resize has occurred. Trigger swapchain recreation.
-        vulkan_swapchain_recreate(context, context->framebuffer_width, context->framebuffer_height, swapchain);
-    } else if (result != VK_SUCCESS) {
-        KFATAL("Failed to present swap chain image!");
-    }
+    VkResult result = vkQueuePresentKHR(graphics_queue, &present_info);
+    VK_CHECK(result);
+    //TODO: uncomment and assurate this works
+    // if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+    //     // Swapchain is out of date, suboptimal or a framebuffer resize has occurred. Trigger swapchain recreation.
+    //     vulkan_swapchain_recreate(context, context->framebuffer_width, context->framebuffer_height, swapchain);
+    // } else if (result != VK_SUCCESS) {
+    //     KFATAL("Failed to present swap chain image!");
+    // }
 }
 
 void create(vulkan_context* context, u32 width, u32 height, vulkan_swapchain* swapchain) {
