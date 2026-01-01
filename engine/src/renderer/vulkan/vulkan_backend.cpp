@@ -127,6 +127,12 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
     poolInfo.queueFamilyIndex = context.device.graphics_queue_index;
     vkCreateCommandPool(context.device.logical_device,&poolInfo,context.allocator,&context.device.graphics_command_pool);
 
+    //Sync objects
+    VkSemaphoreCreateInfo sema_info = {};
+    sema_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    VK_CHECK(vkCreateSemaphore(context.device.logical_device, &sema_info, context.allocator, &context.submit_semaphore));
+    VK_CHECK(vkCreateSemaphore(context.device.logical_device, &sema_info, context.allocator, &context.aquire_semaphore));
+
     KINFO("Vulkan renderer initialized successfully.");
     return TRUE;
 }
@@ -169,8 +175,9 @@ b8 vulkan_renderer_backend_begin_frame(renderer_backend* backend, f32 delta_time
     if (!vulkan_swapchain_acquire_next_image_index(
             &context,
             &context.swapchain,
-            0,
-            0,
+            UINT64_MAX,
+            //WARN: Esto puede no ser válido
+            context.aquire_semaphore,
             0,
             &context.image_index)) {
         return FALSE;
@@ -191,14 +198,20 @@ b8 vulkan_renderer_backend_begin_frame(renderer_backend* backend, f32 delta_time
     
     VK_CHECK(vkEndCommandBuffer(cmd));
 
-    
+    VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
     // Submit the queue
     VkSubmitInfo submit_info = {};
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submit_info.pWaitDstStageMask = &waitStage;
     submit_info.commandBufferCount = 1;
     //submit_info.pCommandBuffers = &command_buffer->handle;
     submit_info.pCommandBuffers = &cmd;
+    submit_info.pSignalSemaphores = &context.submit_semaphore;
+    submit_info.signalSemaphoreCount = 1;
+    submit_info.pWaitSemaphores = &context.aquire_semaphore;
+    submit_info.waitSemaphoreCount = 1;
+
     VK_CHECK(vkQueueSubmit(context.device.graphics_queue, 1, &submit_info, 0));
 
     // Wait for it to finish
@@ -219,7 +232,8 @@ b8 vulkan_renderer_backend_begin_frame(renderer_backend* backend, f32 delta_time
     present_info.swapchainCount = 1;
     present_info.pSwapchains = &context.swapchain.handle;
     present_info.pImageIndices = &context.image_index;
-
+    present_info.pWaitSemaphores = &context.submit_semaphore;
+    present_info.waitSemaphoreCount = 1;
     VK_CHECK(vkQueuePresentKHR(context.device.present_queue, &present_info));
     vkDeviceWaitIdle(context.device.logical_device);
     vkFreeCommandBuffers(context.device.logical_device, context.device.graphics_command_pool,1,&cmd);

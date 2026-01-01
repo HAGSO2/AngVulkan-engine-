@@ -81,6 +81,17 @@ typedef struct vulkan_context {
     vulkan_device device;
 
     vulkan_swapchain swapchain;
+    // // darray
+    // vulkan_command_buffer* graphics_command_buffers;
+
+    // // darray
+    // VkSemaphore* image_available_semaphores;
+
+    // // darray
+    // VkSemaphore* queue_complete_semaphores;
+    VkSemaphore aquire_semaphore;
+    VkSemaphore submit_semaphore;
+
     u32 image_index;
     u32 current_frame;
 

@@ -31,6 +31,11 @@
       "backgroundColor": "rgba(0,0,0,0)"
     },
     {
+      "text": "WARN:",
+      "color": "#FFC800",
+      "backgroundColor": "rgba(0,0,0,0)"
+    },
+    {
       "text": "HACK:",
       "color": "#ff6600",
       "backgroundColor": "rgba(0,0,0,0)"
