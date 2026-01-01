@@ -176,7 +176,6 @@ b8 vulkan_renderer_backend_begin_frame(renderer_backend* backend, f32 delta_time
             &context,
             &context.swapchain,
             UINT64_MAX,
-            //WARN: Esto puede no ser válido
             context.aquire_semaphore,
             0,
             &context.image_index)) {
@@ -195,6 +194,16 @@ b8 vulkan_renderer_backend_begin_frame(renderer_backend* backend, f32 delta_time
     begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
     VK_CHECK(vkBeginCommandBuffer(cmd, &begin_info));
+
+    //Render commands
+    {
+        VkClearColorValue color = {0,0,0.5,0.5};
+        VkImageSubresourceRange range ={};
+        range.layerCount = 1;
+        range.levelCount = 1;
+        range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        vkCmdClearColorImage(cmd, context.swapchain.images[context.image_index], VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, &color, 1, &range);
+    }
     
     VK_CHECK(vkEndCommandBuffer(cmd));
 
