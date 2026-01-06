@@ -122,10 +122,63 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
         context.framebuffer_height,
         &context.swapchain);
 
+    //FrameBuffer
+    vkCreateFramebuffer(context.device.logical_device, &fb_info, context.allocator, &context.framebuffer)
+
+    // Main subpass
+    VkSubpassDescription subpass = {};
+    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+
+    // Attachments TODO: make this configurable.
+    u32 attachment_description_count = 2;
+    VkAttachmentDescription* attachment_descriptions = new VkAttachmentDescription[attachment_description_count];
+
+    // Color attachment
+    VkAttachmentDescription color_attachment;
+    color_attachment.format = context.swapchain.image_format.format;  // TODO: configurable
+    color_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+    color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    color_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    color_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;      // Do not expect any particular layout before render pass starts.
+    color_attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;  // Transitioned to after the render pass
+    color_attachment.flags = 0;
+
+    attachment_descriptions[0] = color_attachment;
+
+    VkAttachmentReference color_attachment_reference;
+    color_attachment_reference.attachment = 0;  // Attachment description array index
+    color_attachment_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments = &color_attachment_reference;
+
+    // Depth attachment, if there is one
+    VkAttachmentDescription depth_attachment = {};
+    depth_attachment.format = context.device.depth_format;
+    depth_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+    depth_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depth_attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depth_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    depth_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depth_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    depth_attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    attachment_descriptions[1] = depth_attachment;
+    
+    VkRenderPassCreateInfo rp_info = {};
+    rp_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    rp_info.attachmentCount = attachment_description_count;
+    rp_info.pAttachments = attachment_descriptions;
+    rp_info.subpassCount = 1;
+    rp_info.pSubpasses = &subpass;
+    VK_CHECK(vkCreateRenderPass(context.device.logical_device, &rp_info, 0, &context.renderpass));
+
     VkCommandPoolCreateInfo poolInfo = {};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.queueFamilyIndex = context.device.graphics_queue_index;
-    vkCreateCommandPool(context.device.logical_device,&poolInfo,context.allocator,&context.device.graphics_command_pool);
+    VK_CHECK(vkCreateCommandPool(context.device.logical_device,&poolInfo,context.allocator,&context.device.graphics_command_pool));
 
     //Sync objects
     VkSemaphoreCreateInfo sema_info = {};
@@ -194,6 +247,14 @@ b8 vulkan_renderer_backend_begin_frame(renderer_backend* backend, f32 delta_time
     begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
     VK_CHECK(vkBeginCommandBuffer(cmd, &begin_info));
+
+    VkRenderPassBeginInfo rpBegin_info = {};
+    rpBegin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    rpBegin_info.renderPass = context.renderpass;
+    //WARN: Esto hay que definirlo
+    //rpBegin_info.renderArea.extent = context.screensize;
+
+    vkCmdBeginRenderPass(cmd,&rpBegin_info,VK_SUBPASS_CONTENTS_INLINE);
 
     //Render commands
     {

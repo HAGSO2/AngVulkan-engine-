@@ -50,7 +50,7 @@
     "color": "red",
     "backgroundColor": "#ffab00",
     "overviewRulerColor": "rgba(0,0,0,0)",
-    "isWholeLine": true
+    "isWholeLine": false
   },
   "files.associations": {
     "test.h": "c",

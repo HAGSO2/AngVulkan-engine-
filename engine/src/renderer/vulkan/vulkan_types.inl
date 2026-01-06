@@ -81,6 +81,8 @@ typedef struct vulkan_context {
     vulkan_device device;
 
     vulkan_swapchain swapchain;
+    VkFramebuffer framebuffer;
+    VkRenderPass renderpass;
     // // darray
     // vulkan_command_buffer* graphics_command_buffers;
 
