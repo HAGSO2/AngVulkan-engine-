@@ -50,6 +50,13 @@ typedef struct vulkan_image {
     u32 height;
 } vulkan_image;
 
+typedef struct vulkan_framebuffer {
+    VkFramebuffer handle;
+    u32 attachment_count;
+    vector<VkImageView> attachments;
+    //vulkan_renderpass* renderpass;
+} vulkan_framebuffer;
+
 typedef struct vulkan_swapchain {
     VkSurfaceFormatKHR image_format;
     u8 max_frames_in_flight;
@@ -59,6 +66,9 @@ typedef struct vulkan_swapchain {
     vector<VkImageView> views;
 
     vulkan_image depth_attachment;
+
+    // framebuffers used for on-screen rendering.
+    vector<vulkan_framebuffer> framebuffers;
 } vulkan_swapchain;
 
 typedef struct vulkan_context {
@@ -81,7 +91,6 @@ typedef struct vulkan_context {
     vulkan_device device;
 
     vulkan_swapchain swapchain;
-    VkFramebuffer framebuffer;
     VkRenderPass renderpass;
     // // darray
     // vulkan_command_buffer* graphics_command_buffers;

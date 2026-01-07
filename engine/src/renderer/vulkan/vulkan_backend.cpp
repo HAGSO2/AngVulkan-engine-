@@ -122,8 +122,19 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
         context.framebuffer_height,
         &context.swapchain);
 
-    //FrameBuffer
-    vkCreateFramebuffer(context.device.logical_device, &fb_info, context.allocator, &context.framebuffer)
+    // //FrameBuffer
+    // //VkFramebufferCreateInfo fb_info = {};
+    // fb_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    // fb_info.width = context.framebuffer_width;
+    // fb_info.height = context.framebuffer_height;
+    // fb_info.renderPass = context.renderpass;
+    // fb_info.layers = 1;
+    // fb_info.attachmentCount = 1;
+    // for(uint32_t i = 0; i < context.swapchain.image_count; i++){
+    //     fb_info.pAttachments = &context.swapchain.views[i];
+    //     //VK_CHECK(vkCreateFramebuffer(context.device.logical_device, &fb_info, context.allocator, &context.swapchain.framebuffer[i]));
+    // }
+    
 
     // Main subpass
     VkSubpassDescription subpass = {};
@@ -179,6 +190,10 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.queueFamilyIndex = context.device.graphics_queue_index;
     VK_CHECK(vkCreateCommandPool(context.device.logical_device,&poolInfo,context.allocator,&context.device.graphics_command_pool));
+
+    // Swapchain framebuffers.
+    context.swapchain.framebuffers = vector<vulkan_framebuffer>(context.swapchain.image_count);
+    regenerate_framebuffers(backend, &context.swapchain, &context.renderpass);
 
     //Sync objects
     VkSemaphoreCreateInfo sema_info = {};
@@ -351,4 +366,23 @@ i32 find_memory_index(u32 type_filter, u32 property_flags) {
 
     KWARN("Unable to find suitable memory type!");
     return -1;
+}
+
+void regenerate_framebuffers(renderer_backend* backend, vulkan_swapchain* swapchain, vulkan_renderpass* renderpass) {
+    for (u32 i = 0; i < swapchain->image_count; ++i) {
+        // TODO: make this dynamic based on the currently configured attachments
+        u32 attachment_count = 2;
+        VkImageView attachments[] = {
+            swapchain->views[i],
+            swapchain->depth_attachment.view};
+
+        vulkan_framebuffer_create(
+            &context,
+            renderpass,
+            context.framebuffer_width,
+            context.framebuffer_height,
+            attachment_count,
+            attachments,
+            &context.swapchain.framebuffers[i]);
+    }
 }
