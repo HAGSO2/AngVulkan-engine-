@@ -4,6 +4,10 @@
 #include "vulkan_platform.h"
 #include "vulkan_device.h"
 #include "vulkan_swapchain.h"
+#include "vulkan_renderpass.h"
+#include "vulkan_framebuffer.h"
+#include "vulkan_command_buffer.h"
+#include "vulkan_fence.h"
 
 #include "core/logger.h"
 #include "utils/Astring.h"
@@ -20,6 +24,10 @@ VKAPI_ATTR VkBool32 VKAPI_CALL vk_debug_callback(
     void* user_data);
 
 i32 find_memory_index(u32 type_filter, u32 property_flags);
+
+void create_command_buffers(renderer_backend* backend);
+void regenerate_framebuffers(renderer_backend* backend, vulkan_swapchain* swapchain, vulkan_renderpass* renderpass);
+b8 recreate_swapchain(renderer_backend* backend);
 
 b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* application_name, const char* engine_name, struct platform_state* plat_state
 , vulkan_options* options) {
@@ -115,6 +123,95 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
         return FALSE;
     }
 
+    // // Swapchain
+    // vulkan_swapchain_create(
+    //     &context,
+    //     context.framebuffer_width,
+    //     context.framebuffer_height,
+    //     &context.swapchain);
+
+    // // //FrameBuffer
+    // // //VkFramebufferCreateInfo fb_info = {};
+    // // fb_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    // // fb_info.width = context.framebuffer_width;
+    // // fb_info.height = context.framebuffer_height;
+    // // fb_info.renderPass = context.renderpass;
+    // // fb_info.layers = 1;
+    // // fb_info.attachmentCount = 1;
+    // // for(uint32_t i = 0; i < context.swapchain.image_count; i++){
+    // //     fb_info.pAttachments = &context.swapchain.views[i];
+    // //     //VK_CHECK(vkCreateFramebuffer(context.device.logical_device, &fb_info, context.allocator, &context.swapchain.framebuffer[i]));
+    // // }
+    
+
+    // // Main subpass
+    // VkSubpassDescription subpass = {};
+    // subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+
+    // // Attachments TODO: make this configurable.
+    // u32 attachment_description_count = 2;
+    // VkAttachmentDescription* attachment_descriptions = new VkAttachmentDescription[attachment_description_count];
+
+    // // Color attachment
+    // VkAttachmentDescription color_attachment;
+    // color_attachment.format = context.swapchain.image_format.format;  // TODO: configurable
+    // color_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+    // color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    // color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    // color_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    // color_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    // color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;      // Do not expect any particular layout before render pass starts.
+    // color_attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;  // Transitioned to after the render pass
+    // color_attachment.flags = 0;
+
+    // attachment_descriptions[0] = color_attachment;
+
+    // VkAttachmentReference color_attachment_reference;
+    // color_attachment_reference.attachment = 0;  // Attachment description array index
+    // color_attachment_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    // subpass.colorAttachmentCount = 1;
+    // subpass.pColorAttachments = &color_attachment_reference;
+
+    // // Depth attachment, if there is one
+    // VkAttachmentDescription depth_attachment = {};
+    // depth_attachment.format = context.device.depth_format;
+    // depth_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+    // depth_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    // depth_attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    // depth_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    // depth_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    // depth_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    // depth_attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    // attachment_descriptions[1] = depth_attachment;
+    
+    // VkRenderPassCreateInfo rp_info = {};
+    // rp_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    // rp_info.attachmentCount = attachment_description_count;
+    // rp_info.pAttachments = attachment_descriptions;
+    // rp_info.subpassCount = 1;
+    // rp_info.pSubpasses = &subpass;
+    // VK_CHECK(vkCreateRenderPass(context.device.logical_device, &rp_info, 0, &context.renderpass));
+
+    // VkCommandPoolCreateInfo poolInfo = {};
+    // poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    // poolInfo.queueFamilyIndex = context.device.graphics_queue_index;
+    // VK_CHECK(vkCreateCommandPool(context.device.logical_device,&poolInfo,context.allocator,&context.device.graphics_command_pool));
+
+    // // Swapchain framebuffers.
+    // context.swapchain.framebuffers = vector<vulkan_framebuffer>(context.swapchain.image_count);
+    // regenerate_framebuffers(backend, &context.swapchain, &context.renderpass);
+
+    // //Sync objects
+    // VkSemaphoreCreateInfo sema_info = {};
+    // sema_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    // VK_CHECK(vkCreateSemaphore(context.device.logical_device, &sema_info, context.allocator, &context.submit_semaphore));
+    // VK_CHECK(vkCreateSemaphore(context.device.logical_device, &sema_info, context.allocator, &context.aquire_semaphore));
+
+    // KINFO("Vulkan renderer initialized successfully.");
+    // return TRUE;
+    // Device creation
     // Swapchain
     vulkan_swapchain_create(
         &context,
@@ -122,91 +219,87 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
         context.framebuffer_height,
         &context.swapchain);
 
-    // //FrameBuffer
-    // //VkFramebufferCreateInfo fb_info = {};
-    // fb_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    // fb_info.width = context.framebuffer_width;
-    // fb_info.height = context.framebuffer_height;
-    // fb_info.renderPass = context.renderpass;
-    // fb_info.layers = 1;
-    // fb_info.attachmentCount = 1;
-    // for(uint32_t i = 0; i < context.swapchain.image_count; i++){
-    //     fb_info.pAttachments = &context.swapchain.views[i];
-    //     //VK_CHECK(vkCreateFramebuffer(context.device.logical_device, &fb_info, context.allocator, &context.swapchain.framebuffer[i]));
-    // }
-    
-
-    // Main subpass
-    VkSubpassDescription subpass = {};
-    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-
-    // Attachments TODO: make this configurable.
-    u32 attachment_description_count = 2;
-    VkAttachmentDescription* attachment_descriptions = new VkAttachmentDescription[attachment_description_count];
-
-    // Color attachment
-    VkAttachmentDescription color_attachment;
-    color_attachment.format = context.swapchain.image_format.format;  // TODO: configurable
-    color_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-    color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    color_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    color_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;      // Do not expect any particular layout before render pass starts.
-    color_attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;  // Transitioned to after the render pass
-    color_attachment.flags = 0;
-
-    attachment_descriptions[0] = color_attachment;
-
-    VkAttachmentReference color_attachment_reference;
-    color_attachment_reference.attachment = 0;  // Attachment description array index
-    color_attachment_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-    subpass.colorAttachmentCount = 1;
-    subpass.pColorAttachments = &color_attachment_reference;
-
-    // Depth attachment, if there is one
-    VkAttachmentDescription depth_attachment = {};
-    depth_attachment.format = context.device.depth_format;
-    depth_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-    depth_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    depth_attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depth_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    depth_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depth_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    depth_attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-    attachment_descriptions[1] = depth_attachment;
-    
-    VkRenderPassCreateInfo rp_info = {};
-    rp_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    rp_info.attachmentCount = attachment_description_count;
-    rp_info.pAttachments = attachment_descriptions;
-    rp_info.subpassCount = 1;
-    rp_info.pSubpasses = &subpass;
-    VK_CHECK(vkCreateRenderPass(context.device.logical_device, &rp_info, 0, &context.renderpass));
-
-    VkCommandPoolCreateInfo poolInfo = {};
-    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolInfo.queueFamilyIndex = context.device.graphics_queue_index;
-    VK_CHECK(vkCreateCommandPool(context.device.logical_device,&poolInfo,context.allocator,&context.device.graphics_command_pool));
+    vulkan_renderpass_create(
+        &context,
+        &context.main_renderpass,
+        0, 0, context.framebuffer_width, context.framebuffer_height,
+        0.0f, 0.0f, 0.2f, 1.0f,
+        1.0f,
+        0);
 
     // Swapchain framebuffers.
     context.swapchain.framebuffers = vector<vulkan_framebuffer>(context.swapchain.image_count);
-    regenerate_framebuffers(backend, &context.swapchain, &context.renderpass);
+    regenerate_framebuffers(backend, &context.swapchain, &context.main_renderpass);
 
-    //Sync objects
+    // Create command buffers.
+    create_command_buffers(backend);
+
+    // Create sync objects.
+    // context.image_available_semaphores = darray_reserve(VkSemaphore, context.swapchain.max_frames_in_flight);
+    // context.queue_complete_semaphores = darray_reserve(VkSemaphore, context.swapchain.max_frames_in_flight);
     VkSemaphoreCreateInfo sema_info = {};
     sema_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     VK_CHECK(vkCreateSemaphore(context.device.logical_device, &sema_info, context.allocator, &context.submit_semaphore));
     VK_CHECK(vkCreateSemaphore(context.device.logical_device, &sema_info, context.allocator, &context.aquire_semaphore));
+    context.in_flight_fences = vector<vulkan_fence>(context.swapchain.max_frames_in_flight);
+
+    for (u8 i = 0; i < context.swapchain.max_frames_in_flight; ++i) {
+        // Create the fence in a signaled state, indicating that the first frame has already been "rendered".
+        // This will prevent the application from waiting indefinitely for the first frame to render since it
+        // cannot be rendered until a frame is "rendered" before it.
+        vulkan_fence_create(&context, TRUE, &context.in_flight_fences[i]);
+    }
+
+    // In flight fences should not yet exist at this point, so clear the list. These are stored in pointers
+    // because the initial state should be 0, and will be 0 when not in use. Acutal fences are not owned
+    // by this list.
+    context.images_in_flight = vector<vulkan_fence*>(context.swapchain.image_count);
+    for (u32 i = 0; i < context.swapchain.image_count; ++i) {
+        context.images_in_flight[i] = 0;
+    }
 
     KINFO("Vulkan renderer initialized successfully.");
     return TRUE;
 }
 
 void vulkan_renderer_backend_shutdown(renderer_backend* backend) {
+    vkDeviceWaitIdle(context.device.logical_device);
     //Destroying in opposite order of creation
+
+
+
+    // Sync objects
+    vkDestroySemaphore(
+                context.device.logical_device,
+                context.aquire_semaphore,
+                context.allocator);
+    vkDestroySemaphore(
+                context.device.logical_device,
+                context.submit_semaphore,
+                context.allocator);
+    for (u8 i = 0; i < context.swapchain.max_frames_in_flight; ++i) {
+        vulkan_fence_destroy(&context, &context.in_flight_fences[i]);
+    }
+
+    // Command buffers
+    for (u32 i = 0; i < context.swapchain.image_count; ++i) {
+        if (context.graphics_command_buffers[i].handle) {
+            vulkan_command_buffer_free(
+                &context,
+                context.device.graphics_command_pool,
+                &context.graphics_command_buffers[i]);
+            context.graphics_command_buffers[i].handle = 0;
+        }
+    }
+    context.graphics_command_buffers.clear();
+
+    // Destroy framebuffers
+    for (u32 i = 0; i < context.swapchain.image_count; ++i) {
+        vulkan_framebuffer_destroy(&context, &context.swapchain.framebuffers[i]);
+    }
+
+    // Renderpass
+    vulkan_renderpass_destroy(&context, &context.main_renderpass);
 
     // Swapchain
     vulkan_swapchain_destroy(&context, &context.swapchain);
@@ -265,7 +358,7 @@ b8 vulkan_renderer_backend_begin_frame(renderer_backend* backend, f32 delta_time
 
     VkRenderPassBeginInfo rpBegin_info = {};
     rpBegin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    rpBegin_info.renderPass = context.renderpass;
+    rpBegin_info.renderPass = context.main_renderpass.handle;
     //WARN: Esto hay que definirlo
     //rpBegin_info.renderArea.extent = context.screensize;
 
@@ -366,6 +459,29 @@ i32 find_memory_index(u32 type_filter, u32 property_flags) {
 
     KWARN("Unable to find suitable memory type!");
     return -1;
+}
+
+void create_command_buffers(renderer_backend* backend) {
+    if (context.graphics_command_buffers.empty()) {
+        context.graphics_command_buffers = vector<vulkan_command_buffer>(context.swapchain.image_count);
+    }
+
+    for (u32 i = 0; i < context.swapchain.image_count; ++i) {
+        if (context.graphics_command_buffers[i].handle) {
+            vulkan_command_buffer_free(
+                &context,
+                context.device.graphics_command_pool,
+                &context.graphics_command_buffers[i]);
+        }
+        context.graphics_command_buffers.erase(context.graphics_command_buffers.begin()+1);
+        vulkan_command_buffer_allocate(
+            &context,
+            context.device.graphics_command_pool,
+            TRUE,
+            &context.graphics_command_buffers[i]);
+    }
+
+    KDEBUG("Vulkan command buffers created.");
 }
 
 void regenerate_framebuffers(renderer_backend* backend, vulkan_swapchain* swapchain, vulkan_renderpass* renderpass) {
