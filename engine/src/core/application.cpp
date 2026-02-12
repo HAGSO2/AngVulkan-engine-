@@ -6,18 +6,19 @@
 
 #include "renderer/renderer_frontend.h"
 
-application_state::application_state(Game* g): game_inst{g},is_running{FALSE}, is_suspended{FALSE}, platform{0}, width{0}, height{0},
+application_state::application_state(Game* g, i16 w, i16 h): game_inst{g},is_running{FALSE}, is_suspended{FALSE}, platform{0}, width{w}, height{h},
  last_time{0}, clock(){};
 
 application_config::application_config(i16 m_start_pos_x,i16 m_start_pos_y,i16 m_start_width,i16 m_start_height, string m_name, string m_engine):
 start_pos_x{m_start_pos_x}, start_pos_y{m_start_pos_y},start_width{m_start_width}, start_height{m_start_height}, name{m_name}, engine{m_engine} {};
 
 Application::Application(i16 start_pos_x,i16 start_pos_y,i16 start_width,i16 start_height, string name, string engine, vulkan_options* opt):
-app_config(start_pos_x,start_pos_y,start_width,start_height, name, engine), initialized{FALSE}, vlk_opt{opt} , app_state{0} {};
+app_config(start_pos_x,start_pos_y,start_width,start_height, name, engine), initialized{FALSE}, vlk_opt{opt} , app_state{0,start_width,start_height} {};
 
 // Event handlers
 b8 application_on_event(u16 code, void* sender, void* listener_inst, event_context context);
 b8 application_on_key(u16 code, void* sender, void* listener_inst, event_context context);
+b8 application_on_resized(u16 code, void* sender, void* listener_inst, event_context context);
 
 b8 Application::application_create(Game* game_inst) {
     if (initialized) {
@@ -42,6 +43,7 @@ b8 Application::application_create(Game* game_inst) {
     event_register(EVENT_CODE_APPLICATION_QUIT, this, application_on_event);
     event_register(EVENT_CODE_KEY_PRESSED, 0, application_on_key);
     event_register(EVENT_CODE_KEY_RELEASED, 0, application_on_key);
+    event_register(EVENT_CODE_RESIZED, this ,application_on_resized);
 
     if (!platform_startup(
             &app_state.platform,
@@ -54,7 +56,7 @@ b8 Application::application_create(Game* game_inst) {
     }
 
     // Renderer startup
-    if (!renderer_initialize(app_config.name.c_str(), app_config.engine.c_str(), &app_state.platform, vlk_opt)) {
+    if (!renderer_initialize(app_config.name.c_str(), app_config.engine.c_str(), &app_state.platform, this)) {
         KFATAL("Failed to initialize renderer. Aborting application.");
         return FALSE;
     }
@@ -142,6 +144,7 @@ b8 Application::application_run() {
     event_unregister(EVENT_CODE_APPLICATION_QUIT, this, application_on_event);
     event_unregister(EVENT_CODE_KEY_PRESSED, 0, application_on_key);
     event_unregister(EVENT_CODE_KEY_RELEASED, 0, application_on_key);
+    event_unregister(EVENT_CODE_RESIZED, this, application_on_resized);
     event_shutdown();
     input_shutdown();
 
@@ -150,6 +153,11 @@ b8 Application::application_run() {
     platform_shutdown(&app_state.platform);
 
     return TRUE;
+}
+
+void Application::application_get_framebuffer_size(u32* width, u32* height) {
+    *width = app_state.width;
+    *height = app_state.height;
 }
 
 b8 application_on_event(u16 code, void* sender, void* listener_inst, event_context context) {
@@ -188,6 +196,43 @@ b8 application_on_key(u16 code, void* sender, void* listener_inst, event_context
             KDEBUG("Explicit - B key released!");
         } else {
             KDEBUG("'%c' key released in window.", key_code);
+        }
+    }
+    return FALSE;
+}
+
+b8 application_on_resized(u16 code, void* sender, void* listener_inst, event_context context) {
+    if (code == EVENT_CODE_RESIZED) {
+        Application* app = (Application*)listener_inst;
+        u16 width = context.data.u16[0];
+        u16 height = context.data.u16[1];
+        return app->application_resized(width,height);
+    }
+
+    // Event purposely not handled to allow other listeners to get this.
+    return FALSE;
+}
+
+b8 Application::application_resized(u16 width, u16 height){
+    // Check if different. If so, trigger a resize event.
+    if (width != app_state.width || height != app_state.height) {
+        app_state.width = width;
+        app_state.height = height;
+
+        KDEBUG("Window resize: %i, %i", width, height);
+
+        // Handle minimization
+        if (width == 0 || height == 0) {
+            KINFO("Window minimized, suspending application.");
+            app_state.is_suspended = TRUE;
+            return TRUE;
+        } else {
+            if (app_state.is_suspended) {
+                KINFO("Window restored, resuming application.");
+                app_state.is_suspended = FALSE;
+            }
+            app_state.game_inst->on_resize(app_state.game_inst, width, height);
+            renderer_on_resized(width, height);
         }
     }
     return FALSE;

@@ -18,7 +18,7 @@ typedef struct application_state {
     i16 height;
     f64 last_time;
     clock clock;
-    application_state(Game* instance);
+    application_state(Game* instance, i16 w, i16 h);
 } application_state;
 
 typedef struct application_config {
@@ -58,7 +58,12 @@ public:
 
     b8 application_run();
 
+    void application_get_framebuffer_size(u32* width, u32* height);
+    b8 application_resized(u16 width, u16 height);
+
     application_state* GetState() {return &app_state;}
     string GetName() {return app_config.name;}
     string GetEngineName() {return app_config.engine;}
+    vulkan_options* GetVlkOptions() {return vlk_opt;}
+    
 };

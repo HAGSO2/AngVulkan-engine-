@@ -9,14 +9,14 @@ struct platform_state;
 // Backend render context.
 static renderer_backend* backend = 0;
 
-b8 renderer_initialize(const char* application_name, const char* engine_name, struct platform_state* plat_state, vulkan_options* opt) {
+b8 renderer_initialize(const char* application_name, const char* engine_name, struct platform_state* plat_state, Application* app) {
     backend = new renderer_backend{0};
 
     // TODO: make this configurable.
     renderer_backend_create(RENDERER_BACKEND_TYPE_VULKAN, plat_state, backend);
     backend->frame_number = 0;
 
-    if (!backend->initialize(backend, application_name, engine_name, plat_state, opt)) {
+    if (!backend->initialize(backend, application_name, engine_name, plat_state, app)) {
         KFATAL("Renderer backend failed to initialize. Shutting down.");
         return FALSE;
     }
@@ -37,6 +37,14 @@ b8 renderer_end_frame(f32 delta_time) {
     b8 result = backend->end_frame(backend, delta_time);
     backend->frame_number++;
     return result;
+}
+
+void renderer_on_resized(u16 width, u16 height) {
+    if (backend) {
+        backend->resized(backend, width, height);
+    } else {
+        KWARN("renderer backend does not exist to accept resize: %i %i", width, height);
+    }
 }
 
 b8 renderer_draw_frame(render_packet* packet) {

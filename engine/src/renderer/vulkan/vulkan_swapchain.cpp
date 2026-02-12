@@ -101,6 +101,7 @@ void create(vulkan_context* context, u32 width, u32 height, vulkan_swapchain* sw
         if (format.format == VK_FORMAT_B8G8R8A8_UNORM &&
             format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
             swapchain->image_format = format;
+            context->surfaceFormat = format;
             found = TRUE;
             break;
         }
@@ -191,7 +192,8 @@ void create(vulkan_context* context, u32 width, u32 height, vulkan_swapchain* sw
 
     // Views
     for (u32 i = 0; i < swapchain->image_count; ++i) {
-        VkImageViewCreateInfo view_info = {VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
+        VkImageViewCreateInfo view_info = {};
+        view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         view_info.image = swapchain->images[i];
         view_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
         view_info.format = swapchain->image_format.format;
