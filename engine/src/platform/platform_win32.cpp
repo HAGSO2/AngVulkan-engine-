@@ -188,6 +188,72 @@ f64 platform_get_absolute_time() {
     return (f64)now_time.QuadPart * clock_frequency;
 }
 
+char *platform_read_file(const char *path, int *length)
+{
+    char *result = 0;
+    *length = 0;
+
+    HANDLE file = CreateFileA(
+        path,
+        GENERIC_READ,
+        FILE_SHARE_READ,
+        0,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL,
+        0);
+
+    if (file == INVALID_HANDLE_VALUE)
+    {
+        KERROR("Failed to open file: %s", path);
+        return 0;
+    }
+
+    LARGE_INTEGER size;
+    if (!GetFileSizeEx(file, &size))
+    {
+        KERROR("Failed to get size of file: %s", path);
+        CloseHandle(file);
+        return 0;
+    }
+
+    //cuidado con archivos grandes
+    if (size.QuadPart > 0xFFFFFFFF)
+    {
+        KERROR("File too large for u32: %s", path);
+        CloseHandle(file);
+        return 0;
+    }
+
+    *length = (u32)size.QuadPart;
+    result = new char[*length];
+
+    DWORD totalRead = 0;
+    while (totalRead < *length)
+    {
+        DWORD bytesRead = 0;
+        DWORD toRead = *length - totalRead;
+
+        if (!ReadFile(file,
+                      result + totalRead,
+                      toRead,
+                      &bytesRead,
+                      0) || bytesRead == 0)
+        {
+            KERROR("Failed to read file: %s", path);
+
+            delete[] result;
+            result = 0;
+            *length = 0;
+            break;
+        }
+
+        totalRead += bytesRead;
+    }
+
+    CloseHandle(file);
+    return result;
+}
+
 void platform_sleep(u64 ms) {
     Sleep(ms);
 }

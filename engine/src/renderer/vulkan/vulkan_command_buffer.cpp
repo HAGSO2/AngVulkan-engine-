@@ -6,8 +6,6 @@ void vulkan_command_buffer_allocate(
     b8 is_primary,
     vulkan_command_buffer* out_command_buffer) {
 
-    delete out_command_buffer;
-
     VkCommandBufferAllocateInfo allocate_info = {VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO};
     allocate_info.commandPool = pool;
     allocate_info.level = is_primary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY;

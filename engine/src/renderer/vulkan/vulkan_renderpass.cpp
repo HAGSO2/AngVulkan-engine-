@@ -24,13 +24,12 @@ void vulkan_renderpass_create(
     // VkSubpassDescription subpass = {};
     // subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 
-    // // Attachments TODO: make this configurable.
     // u32 attachment_description_count = 2;
     // VkAttachmentDescription* attachment_descriptions = new VkAttachmentDescription[attachment_description_count];
 
     // // Color attachment
     // VkAttachmentDescription color_attachment;
-    // color_attachment.format = context->swapchain.image_format.format;  // TODO: configurable
+    // color_attachment.format = context->swapchain.image_format.format;
     // color_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
     // color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     // color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -93,44 +92,8 @@ void vulkan_renderpass_create(
     // dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
     // dependency.dependencyFlags = 0;
 
-    
-
-        //MINE
-
-    // VkAttachmentDescription attachment = {};
-    // //NOTE: This can be changed so load frame is different.
-    // attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    // attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    // attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-    // attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    // //NOTE: Multisampling settings here
-    // attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-    // attachment.format = context->surfaceFormat.format;
-
-    // VkAttachmentReference colorAttachmentRef = {};
-    // colorAttachmentRef.attachment = 0; // This is an index into the attachments array
-    // colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-    // VkSubpassDescription subpassDesc = {};
-    // subpassDesc.colorAttachmentCount = 1;
-    // subpassDesc.pColorAttachments = &colorAttachmentRef;
-
-    // VkAttachmentDescription attachments[] = {
-    //     attachment
-    // };
-
-    // VkRenderPassCreateInfo rpInfo = {};
-    // rpInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    // rpInfo.pAttachments = &attachment;
-    // rpInfo.attachmentCount = 1;
-    // //rpInfo.pAttachments = attachments;
-    // //rpInfo.attachmentCount = ARRAYSIZE(attachments);
-    // rpInfo.subpassCount = 1;
-    // rpInfo.pSubpasses = &subpassDesc;
-    // VK_CHECK(vkCreateRenderPass(context->device.logical_device,&rpInfo, context->allocator, &context->main_renderpass.handle));
-    // Render pass create.
-    // VkRenderPassCreateInfo render_pass_create_info = {};
-    // render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    // // Render pass create.
+    // VkRenderPassCreateInfo render_pass_create_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO};
     // render_pass_create_info.attachmentCount = attachment_description_count;
     // render_pass_create_info.pAttachments = attachment_descriptions;
     // render_pass_create_info.subpassCount = 1;
@@ -139,9 +102,55 @@ void vulkan_renderpass_create(
     // render_pass_create_info.pDependencies = &dependency;
     // render_pass_create_info.pNext = 0;
     // render_pass_create_info.flags = 0;
-        // VK_CHECK(vkCreateRenderPass(
-        // context->device.logical_device,
-        // &render_pass_create_info,
-        // context->allocator,
-        // &out_renderpass->handle));
+
+    // VK_CHECK(vkCreateRenderPass(
+    //     context->device.logical_device,
+    //     &render_pass_create_info,
+    //     context->allocator,
+    //     &out_renderpass->handle));
+
+}
+
+void vulkan_renderpass_destroy(vulkan_context* context, vulkan_renderpass* renderpass) {
+    if (renderpass && renderpass->handle) {
+        vkDestroyRenderPass(context->device.logical_device, renderpass->handle, context->allocator);
+        renderpass->handle = 0;
+    }
+}
+
+void vulkan_renderpass_begin(
+    vulkan_command_buffer* command_buffer,
+    vulkan_renderpass* renderpass,
+    VkFramebuffer frame_buffer) {
+    
+    VkRenderPassBeginInfo begin_info = {};
+    begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    begin_info.renderPass = renderpass->handle;
+    begin_info.framebuffer = frame_buffer;
+    begin_info.renderArea.offset.x = renderpass->x;
+    begin_info.renderArea.offset.y = renderpass->y;
+    begin_info.renderArea.extent.width = renderpass->w;
+    begin_info.renderArea.extent.height = renderpass->h;
+
+    // VkClearValue clearValue = {};
+    // clearValue.color = {0,0,0.5,0.5};
+
+    VkClearValue* clear_values = new VkClearValue[2];
+    clear_values[0].color.float32[0] = renderpass->r;
+    clear_values[0].color.float32[1] = renderpass->g;
+    clear_values[0].color.float32[2] = renderpass->b;
+    clear_values[0].color.float32[3] = renderpass->a;
+    clear_values[1].depthStencil.depth = renderpass->depth;
+    clear_values[1].depthStencil.stencil = renderpass->stencil;
+
+    begin_info.clearValueCount = 2;
+    begin_info.pClearValues = clear_values;
+
+    vkCmdBeginRenderPass(command_buffer->handle, &begin_info, VK_SUBPASS_CONTENTS_INLINE);
+    command_buffer->state = COMMAND_BUFFER_STATE_IN_RENDER_PASS;
+}
+
+void vulkan_renderpass_end(vulkan_command_buffer* command_buffer, vulkan_renderpass* renderpass) {
+    vkCmdEndRenderPass(command_buffer->handle);
+    command_buffer->state = COMMAND_BUFFER_STATE_RECORDING;
 }

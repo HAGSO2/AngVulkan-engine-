@@ -1,0 +1,63 @@
+Para compilar shaders usar una terminal en la carpeta donde se encuentran los shaders y:
+glslc ./shader.vert -O -o shader.vert.spv //glslc debe estar instalado y en el path previamente
+
+#!/bin/bash
+# Build script for rebuilding everything
+set echo on
+
+echo "Building everything..."
+
+
+pushd engine
+source build.sh
+popd
+
+ERRORLEVEL=$?
+if [ $ERRORLEVEL -ne 0 ]
+then
+echo "Error:"$ERRORLEVEL && exit
+fi
+
+pushd testgame
+source build.sh
+popd
+ERRORLEVEL=$?
+if [ $ERRORLEVEL -ne 0 ]
+then
+echo "Error:"$ERRORLEVEL && exit
+fi
+
+echo "All assemblies built successfully."
+-------
+Con .mak
+-------
+#!/bin/bash
+# Build script for rebuilding everything
+set echo on
+
+echo "Building everything..."
+
+
+# pushd engine
+# source build.sh
+# popd
+make -f Makefile.engine.linux.mak all
+
+ERRORLEVEL=$?
+if [ $ERRORLEVEL -ne 0 ]
+then
+echo "Error:"$ERRORLEVEL && exit
+fi
+
+# pushd testgame
+# source build.sh
+# popd
+make -f Makefile.testgame.linux.mak all
+
+ERRORLEVEL=$?
+if [ $ERRORLEVEL -ne 0 ]
+then
+echo "Error:"$ERRORLEVEL && exit
+fi
+
+echo "All assemblies built successfully."

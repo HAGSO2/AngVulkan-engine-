@@ -299,6 +299,38 @@ f64 platform_get_absolute_time() {
     return now.tv_sec + now.tv_nsec * 0.000000001;
 }
 
+char *platform_read_file(const char *path, int *length)
+{
+    char *result = 0;
+
+    // This opens the file
+    FILE *file = fopen(path, "rb");
+
+    if (file)
+    {
+        fseek(file, 0, SEEK_END);
+        *length = ftell(file);
+        fseek(file, 0, SEEK_SET);
+
+        result = new char[*length];
+
+        if (fread(result, 1, *length, file) != *length)
+        {
+            KERROR("Failed to read file: %s", path);
+            delete[] result;
+            result = 0;
+        }
+
+        fclose(file);
+        }
+    else
+    {
+        KERROR("Failed to open file: %s", path);
+    }
+
+    return result;
+}
+
 void platform_sleep(u64 ms) {
 #if _POSIX_C_SOURCE >= 199309L
     struct timespec ts;
@@ -322,7 +354,8 @@ b8 platform_create_vulkan_surface(platform_state *plat_state, vulkan_context *co
     // Simply cold-cast to the known type.
     internal_state *state = (internal_state *)plat_state->internal_state;
 
-    VkXcbSurfaceCreateInfoKHR create_info = {VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR};
+    VkXcbSurfaceCreateInfoKHR create_info = {};
+    create_info.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
     create_info.connection = state->connection;
     create_info.window = state->window;
 

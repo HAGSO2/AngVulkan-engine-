@@ -158,6 +158,14 @@ typedef struct vulkan_context {
 
     i32 (*find_memory_index)(u32 type_filter, u32 property_flags);
 
-    VkCommandBuffer cmd;
+    //NOTE:Need to refactor all of this
+    VkDescriptorPool descPool;
+    VkDescriptorSet descSet;
+    VkDescriptorSetLayout setLayout;
+    VkPipelineLayout pipeLayout;
+    VkPipeline pipeLine;
+    // vulkan_image image;
+    VkSampler sampler;
+
 
 } vulkan_context;

@@ -79,7 +79,8 @@ b8 vulkan_device_create(vulkan_context* context, vulkan_options* options) {
     VkPhysicalDeviceFeatures device_features = {};
     device_features.samplerAnisotropy = VK_TRUE;  // Request anistrophy
 
-    VkDeviceCreateInfo device_create_info = {VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
+    VkDeviceCreateInfo device_create_info = {};
+    device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     device_create_info.queueCreateInfoCount = index_count;
     device_create_info.pQueueCreateInfos = queue_create_infos;
     device_create_info.pEnabledFeatures = &device_features;
@@ -101,22 +102,23 @@ b8 vulkan_device_create(vulkan_context* context, vulkan_options* options) {
     KINFO("Logical device created.");
 
     // Get queues.
+    //WARN: He puesto los indices que antes estaban a 0
     vkGetDeviceQueue(
         context->device.logical_device,
         context->device.graphics_queue_index,
-        0,
+        context->device.graphics_queue_index,
         &context->device.graphics_queue);
 
     vkGetDeviceQueue(
         context->device.logical_device,
         context->device.present_queue_index,
-        0,
+        context->device.present_queue_index,
         &context->device.present_queue);
 
     vkGetDeviceQueue(
         context->device.logical_device,
         context->device.transfer_queue_index,
-        0,
+        context->device.transfer_queue_index,
         &context->device.transfer_queue);
     KINFO("Queues obtained.");
 
