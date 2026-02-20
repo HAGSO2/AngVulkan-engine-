@@ -1,6 +1,6 @@
 #include "vulkan_pipeline.h"
 
-void create_pipeline(vulkan_context* context){
+void vulkan_pipeline_create(vulkan_context* context){
     // Create Pipeline Layout
     {
         VkPipelineLayoutCreateInfo layoutInfo = {};
@@ -148,4 +148,19 @@ void set_descriptors(vulkan_context* context) {
     allocInfo.pSetLayouts = &context->setLayout;
 
     vkAllocateDescriptorSets(context->device.logical_device, &allocInfo, &context->descSet);
+}
+
+void vulkan_pipeline_destroy(vulkan_context* context) {
+    
+    if (context->pipeLine != VK_NULL_HANDLE)
+    {
+        vkDestroyPipeline(context->device.logical_device, context->pipeLine, context->allocator);
+        context->pipeLine = VK_NULL_HANDLE;
+    }
+
+    if (context->pipeLayout != VK_NULL_HANDLE)
+    {
+        vkDestroyPipelineLayout(context->device.logical_device, context->pipeLayout, context->allocator);
+        context->pipeLayout = VK_NULL_HANDLE;
+    }
 }

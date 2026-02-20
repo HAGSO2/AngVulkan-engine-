@@ -66,6 +66,7 @@ typedef struct vulkan_renderpass {
 
     f32 depth;
     u32 stencil;
+    u32 attachment_count;
 
     vulkan_render_pass_state state;
 } vulkan_renderpass;
@@ -109,6 +110,11 @@ typedef struct vulkan_command_buffer {
     vulkan_command_buffer_state state;
 } vulkan_command_buffer;
 
+typedef struct vulkan_fence {
+    VkFence handle;
+    b8 is_signaled;
+} vulkan_fence;
+
 typedef struct vulkan_context {
 
 
@@ -149,7 +155,7 @@ typedef struct vulkan_context {
     // VkSemaphore* queue_complete_semaphores;
     VkSemaphore aquire_semaphore;
     VkSemaphore submit_semaphore;
-    VkFence imgAvailableFence;
+    vulkan_fence imgAvailableFence;
 
     u32 image_index;
     u32 current_frame;

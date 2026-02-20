@@ -7,7 +7,6 @@ void vulkan_framebuffer_create(
     vulkan_renderpass* renderpass,
     u32 width,
     u32 height,
-    u32 attachment_count,
     vector<VkImageView> attachments,
     vulkan_framebuffer* out_framebuffer);
 

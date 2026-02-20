@@ -8,6 +8,7 @@
 #include "vulkan_framebuffer.h"
 #include "vulkan_utils.h"
 #include "vulkan_command_buffer.h"
+#include "vulkan_fence.h"
 #include "vulkan_pipeline.h"
 
 #include "core/logger.h"
@@ -151,92 +152,34 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
         1.0f,
         0);
 
-    VkAttachmentDescription colorAttachment = {};
-        colorAttachment.format = context->surfaceFormat.format;
-        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-        VkAttachmentDescription attachments[] = {
-            colorAttachment};
-
-        VkAttachmentReference colorAttachmentRef = {};
-        colorAttachmentRef.attachment = 0; // This is an index into the attachments array
-        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-        VkSubpassDescription subpassDesc = {};
-        subpassDesc.colorAttachmentCount = 1;
-        subpassDesc.pColorAttachments = &colorAttachmentRef;
-
-        VkRenderPassCreateInfo rpInfo = {};
-        rpInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-        rpInfo.pAttachments = attachments;
-        rpInfo.attachmentCount = ARRAYSIZE(attachments);
-        rpInfo.subpassCount = 1;
-        rpInfo.pSubpasses = &subpassDesc;
-
-    
-
-    VK_CHECK(vkCreateRenderPass(context->device.logical_device,&rpInfo, context->allocator, &context->main_renderpass.handle));
-
-    
     // Swapchain framebuffers.
-    // context->swapchain.framebuffers = vector<vulkan_framebuffer>(context->swapchain.image_count);
-    // regenerate_framebuffers(backend, &context->swapchain, &context->main_renderpass);
-    VkFramebufferCreateInfo fbInfo = {};
-    fbInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    fbInfo.renderPass = context->main_renderpass.handle;
-    fbInfo.width = context->framebuffer_width;
-    fbInfo.height = context->framebuffer_height;
-    fbInfo.layers = 1;
-    fbInfo.attachmentCount = 1;
-
     context->swapchain.framebuffers = vector<vulkan_framebuffer>(context->swapchain.image_count);
-
-    for (uint32_t i = 0; i < context->swapchain.image_count; i++)
-    {
-        fbInfo.pAttachments = &context->swapchain.views[i];
-        VK_CHECK(vkCreateFramebuffer(context->device.logical_device, &fbInfo, 0, &context->swapchain.framebuffers[i].handle));
-    }
-    
-    //Command Pool
-    VkCommandPoolCreateInfo poolInfo = {};
-    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolInfo.queueFamilyIndex = context->device.graphics_queue_index;
-    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    VK_CHECK(vkCreateCommandPool(context->device.logical_device,&poolInfo,context->allocator,&context->device.graphics_command_pool));
+    regenerate_framebuffers(backend, &context->swapchain, &context->main_renderpass);
 
     //Command Buffer
     create_command_buffers(backend);
-    // VkCommandBufferAllocateInfo info = {};
-    // info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    // info.commandBufferCount = 1;
-    // info.commandPool = context->device.graphics_command_pool;
-    // info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    // VK_CHECK(vkAllocateCommandBuffers(context->device.logical_device, &info, &context->cmd));
+
+    //Pipeline
+    vulkan_pipeline_create(context);
+    // set_descriptors(context);
+
 
     //Sync objects
-    VkSemaphoreCreateInfo sema_info = {};
-    sema_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-    VK_CHECK(vkCreateSemaphore(context->device.logical_device, &sema_info, context->allocator, &context->submit_semaphore));
-    VK_CHECK(vkCreateSemaphore(context->device.logical_device, &sema_info, context->allocator, &context->aquire_semaphore));
+    //NOTE: ¿Poner array para esto en vez de ser varias instancias?
+    VkSemaphoreCreateInfo semaphore_create_info = {};
+    semaphore_create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    VK_CHECK(vkCreateSemaphore(context->device.logical_device, &semaphore_create_info, context->allocator, &context->submit_semaphore));
+    VK_CHECK(vkCreateSemaphore(context->device.logical_device, &semaphore_create_info, context->allocator, &context->aquire_semaphore));
 
-    VkFenceCreateInfo fence_info = {};
-    fence_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    fence_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-    VK_CHECK(vkCreateFence(context->device.logical_device, &fence_info, 0, &context->imgAvailableFence));
-
-    create_pipeline(context);
-
-    // set_descriptors(context);
+    vulkan_fence_create(context, TRUE, &context->imgAvailableFence);
 
     KINFO("Vulkan renderer initialized successfully.");
     return TRUE;
 }
 
 void vulkan_renderer_backend_shutdown(renderer_backend* backend) {
+    vkDeviceWaitIdle(context->device.logical_device);
+
     //Destroying in opposite order of creation
 
     //Sync objects
@@ -249,6 +192,12 @@ void vulkan_renderer_backend_shutdown(renderer_backend* backend) {
                 context->device.logical_device,
                 context->submit_semaphore,
                 context->allocator);
+
+    vulkan_fence_destroy(context, &context->imgAvailableFence);
+
+    //Pipeline
+    KINFO("Destroying pipeline...");
+    vulkan_pipeline_destroy(context);
 
     // Command buffers
     KINFO("Destroying command buffers...");
@@ -309,9 +258,19 @@ void vulkan_renderer_backend_on_resized(renderer_backend* backend, u16 width, u1
 b8 vulkan_renderer_backend_begin_frame(renderer_backend* backend, f32 delta_time) {
 
     // We wait on the GPU to be done with the work
-    VK_CHECK(vkWaitForFences(context->device.logical_device, 1, &context->imgAvailableFence, VK_TRUE, UINT64_MAX));
-    VK_CHECK(vkResetFences(context->device.logical_device, 1, &context->imgAvailableFence));
+    // Wait for the execution of the current frame to complete. The fence being free will allow this one to move on.
+    if (!vulkan_fence_wait(
+            context,
+            &context->imgAvailableFence,
+            UINT64_MAX)) {
+        KWARN("In-flight fence wait failure!");
+        return FALSE;
+    }
 
+    // Reset the fence for use on the next frame
+    vulkan_fence_reset(context, &context->imgAvailableFence);
+
+    //NOTE: Hasta aquí llega lo que he cambiado
     // Acquire the next image from the swap chain. Pass along the semaphore that should signaled when this completes.
     // This same semaphore will later be waited on by the queue submission to ensure this image is available.
     if (!vulkan_swapchain_acquire_next_image_index(
@@ -377,7 +336,7 @@ b8 vulkan_renderer_backend_begin_frame(renderer_backend* backend, f32 delta_time
     submit_info.pWaitSemaphores = &context->aquire_semaphore;
     submit_info.waitSemaphoreCount = 1;
 
-    VK_CHECK(vkQueueSubmit(context->device.graphics_queue, 1, &submit_info, context->imgAvailableFence));
+    VK_CHECK(vkQueueSubmit(context->device.graphics_queue, 1, &submit_info, context->imgAvailableFence.handle));
 
     VkPresentInfoKHR present_info = {};
     present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -462,7 +421,6 @@ void create_command_buffers(renderer_backend* backend) {
 void regenerate_framebuffers(renderer_backend* backend, vulkan_swapchain* swapchain, vulkan_renderpass* renderpass) {
     for (u32 i = 0; i < swapchain->image_count; ++i) {
         // TODO: make this dynamic based on the currently configured attachments
-        u32 attachment_count = 2;
         vector<VkImageView> attachments = {
             swapchain->views[i],
             swapchain->depth_attachment.view};
@@ -472,7 +430,6 @@ void regenerate_framebuffers(renderer_backend* backend, vulkan_swapchain* swapch
             renderpass,
             context->framebuffer_width,
             context->framebuffer_height,
-            attachment_count,
             attachments,
             &context->swapchain.framebuffers[i]);
     }

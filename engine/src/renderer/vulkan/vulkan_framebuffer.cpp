@@ -5,9 +5,9 @@ void vulkan_framebuffer_create(
     vulkan_renderpass* renderpass,
     u32 width,
     u32 height,
-    u32 attachment_count,
     vector<VkImageView> attachments,
     vulkan_framebuffer* out_framebuffer) {
+    u32 attachment_count = renderpass->attachment_count;
     // Take a copy of the attachments, renderpass and attachment count
     out_framebuffer->attachments = vector<VkImageView>(attachment_count);
     for (u32 i = 0; i < attachment_count; ++i) {

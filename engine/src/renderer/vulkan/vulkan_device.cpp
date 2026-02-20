@@ -122,6 +122,18 @@ b8 vulkan_device_create(vulkan_context* context, vulkan_options* options) {
         &context->device.transfer_queue);
     KINFO("Queues obtained.");
 
+    // Create command pool for graphics queue.
+    VkCommandPoolCreateInfo pool_create_info = {};
+    pool_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    pool_create_info.queueFamilyIndex = context->device.graphics_queue_index;
+    pool_create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    VK_CHECK(vkCreateCommandPool(
+        context->device.logical_device,
+        &pool_create_info,
+        context->allocator,
+        &context->device.graphics_command_pool));
+    KINFO("Graphics command pool created.");
+
     return TRUE;
 }
 
@@ -131,6 +143,12 @@ void vulkan_device_destroy(vulkan_context* context) {
     context->device.graphics_queue = 0;
     context->device.present_queue = 0;
     context->device.transfer_queue = 0;
+
+    KINFO("Destroying command pools...");
+    vkDestroyCommandPool(
+        context->device.logical_device,
+        context->device.graphics_command_pool,
+        context->allocator);
 
     // Destroy logical device
     KINFO("Destroying logical device...");
@@ -145,13 +163,11 @@ void vulkan_device_destroy(vulkan_context* context) {
 
     if (!context->device.swapchain_support.formats.empty()) {
         context->device.swapchain_support.formats.clear();
-        context->device.swapchain_support.formats = vector<VkSurfaceFormatKHR>();
         context->device.swapchain_support.format_count = 0;
     }
 
     if (!context->device.swapchain_support.present_modes.empty()) {
         context->device.swapchain_support.present_modes.clear();
-        context->device.swapchain_support.present_modes = vector<VkPresentModeKHR>();
         context->device.swapchain_support.present_mode_count = 0;
     }
 
