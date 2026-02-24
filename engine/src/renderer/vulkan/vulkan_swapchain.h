@@ -22,7 +22,7 @@ b8 vulkan_swapchain_acquire_next_image_index(
     vulkan_context* context,
     vulkan_swapchain* swapchain,
     u64 timeout_ns,
-    VkSemaphore image_available_semaphore,
+    VkSemaphore* image_available_semaphore,
     VkFence fence,
     u32* out_image_index);
 

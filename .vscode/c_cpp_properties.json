@@ -3,7 +3,9 @@
         {
             "name": "windows-gcc-x64",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "/usr/include",
+                "/usr/include/cjson"
             ],
             "defines": [
                 "_DEBUG",

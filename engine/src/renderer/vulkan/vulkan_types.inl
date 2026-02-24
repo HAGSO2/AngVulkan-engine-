@@ -148,14 +148,20 @@ typedef struct vulkan_context {
     // // darray
     vector<vulkan_command_buffer> graphics_command_buffers;
 
-    // // darray
-    // VkSemaphore* image_available_semaphores;
+    // darray
+    vector<VkSemaphore> image_available_semaphores;
 
-    // // darray
-    // VkSemaphore* queue_complete_semaphores;
-    VkSemaphore aquire_semaphore;
-    VkSemaphore submit_semaphore;
-    vulkan_fence imgAvailableFence;
+    // darray
+    vector<VkSemaphore> queue_complete_semaphores;
+
+    vector<vulkan_fence> in_flight_fences;
+
+    // Holds pointers to fences which exist and are owned elsewhere.
+    vector<vulkan_fence*> images_in_flight;
+
+    // VkSemaphore aquire_semaphore;
+    // VkSemaphore submit_semaphore;
+    // vulkan_fence imgAvailableFence;
 
     u32 image_index;
     u32 current_frame;

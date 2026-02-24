@@ -150,6 +150,35 @@ void set_descriptors(vulkan_context* context) {
     vkAllocateDescriptorSets(context->device.logical_device, &allocInfo, &context->descSet);
 }
 
+void vulkan_pipeline_draw(vulkan_context* context){
+
+    vulkan_command_buffer* command_buffer = &context->graphics_command_buffers[context->image_index];
+    
+    // Dynamic state
+    VkViewport viewport = {};
+    viewport.maxDepth = 1.0f;
+    viewport.width = context->main_renderpass.w;
+    viewport.height = context->main_renderpass.h;
+
+    // Scissor
+    VkRect2D scissor = {};
+    scissor.offset.x = context->main_renderpass.x;
+    scissor.offset.y = context->main_renderpass.y;
+    scissor.extent.width = context->framebuffer_width;
+    scissor.extent.height = context->framebuffer_height;
+
+    vkCmdSetViewport(command_buffer->handle, 0, 1, &viewport);
+    vkCmdSetScissor(command_buffer->handle, 0, 1, &scissor);
+
+    vkCmdBindPipeline(command_buffer->handle, VK_PIPELINE_BIND_POINT_GRAPHICS, context->pipeLine);
+    vkCmdDraw(command_buffer->handle, 3, 1, 0, 0);
+    // Actually draw
+    // Bind pipe
+    // Bind desc
+    // Draw
+    // Reapeat
+}
+
 void vulkan_pipeline_destroy(vulkan_context* context) {
     
     if (context->pipeLine != VK_NULL_HANDLE)

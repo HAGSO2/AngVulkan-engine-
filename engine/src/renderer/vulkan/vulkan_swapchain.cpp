@@ -36,7 +36,7 @@ b8 vulkan_swapchain_acquire_next_image_index(
     vulkan_context* context,
     vulkan_swapchain* swapchain,
     u64 timeout_ns,
-    VkSemaphore image_available_semaphore,
+    VkSemaphore* image_available_semaphore,
     VkFence fence,
     u32* out_image_index) {
 
@@ -44,7 +44,7 @@ b8 vulkan_swapchain_acquire_next_image_index(
         context->device.logical_device,
         swapchain->handle,
         timeout_ns,
-        image_available_semaphore,
+        *image_available_semaphore,
         fence,
         out_image_index);
 
@@ -68,6 +68,15 @@ void vulkan_swapchain_present(
     VkSemaphore render_complete_semaphore,
     u32 present_image_index) {
 
+    // VkPresentInfoKHR present_info = {};
+    // present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    // present_info.swapchainCount = 1;
+    // present_info.pSwapchains = &swapchain->handle;
+    // present_info.pImageIndices = &present_image_index;
+    // present_info.pWaitSemaphores = &render_complete_semaphore;
+    // present_info.waitSemaphoreCount = 1;
+    // VK_CHECK(vkQueuePresentKHR(present_queue, &present_info)); 
+
     // Return the image to the swapchain for presentation.
     VkPresentInfoKHR present_info = {};
     present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -78,15 +87,31 @@ void vulkan_swapchain_present(
     present_info.pImageIndices = &present_image_index;
     present_info.pResults = 0;
 
-    VkResult result = vkQueuePresentKHR(graphics_queue, &present_info);
-    VK_CHECK(result);
+    // VkResult result = vkQueuePresentKHR(present_queue, &present_info);
+    // VK_CHECK(result);
     //TODO: uncomment and assurate this works
-    // if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
-    //     // Swapchain is out of date, suboptimal or a framebuffer resize has occurred. Trigger swapchain recreation.
-    //     vulkan_swapchain_recreate(context, context->framebuffer_width, context->framebuffer_height, swapchain);
-    // } else if (result != VK_SUCCESS) {
-    //     KFATAL("Failed to present swap chain image!");
+    // if (result != VK_SUCCESS){
+    //     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+    //         // Swapchain is out of date, suboptimal or a framebuffer resize has occurred. Trigger swapchain recreation.
+    //         vulkan_swapchain_recreate(context, context->framebuffer_width, context->framebuffer_height, swapchain);
+    //     } else {
+    //             KFATAL("Failed to present swap chain image!");
+    //     }
+    //     vulkan_swapchain_present(context,swapchain,graphics_queue,present_queue,render_complete_semaphore,present_image_index);
     // }
+
+    VkResult result = vkQueuePresentKHR(present_queue, &present_info);
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+        // Swapchain is out of date, suboptimal or a framebuffer resize has occurred. Trigger swapchain recreation.
+        vulkan_swapchain_recreate(context, context->framebuffer_width, context->framebuffer_height, swapchain);
+    } else if (result != VK_SUCCESS) {
+        KFATAL("Failed to present swap chain image!");
+    }
+
+    // Increment (and loop) the index.
+    context->current_frame = (context->current_frame + 1) % swapchain->max_frames_in_flight;
+
+    KDEBUG("Paso");
 }
 
 void create(vulkan_context* context, u32 width, u32 height, vulkan_swapchain* swapchain) {

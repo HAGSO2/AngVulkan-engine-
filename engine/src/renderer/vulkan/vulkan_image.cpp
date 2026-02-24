@@ -22,7 +22,8 @@ void vulkan_image_create(
     out_image->height = height;
 
     // Creation info.
-    VkImageCreateInfo image_create_info = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
+    VkImageCreateInfo image_create_info = {};
+    image_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     image_create_info.imageType = VK_IMAGE_TYPE_2D;
     image_create_info.extent.width = width;
     image_create_info.extent.height = height;
@@ -54,8 +55,8 @@ void vulkan_image_create(
     VK_CHECK(vkAllocateMemory(context->device.logical_device, &memory_allocate_info, context->allocator, &out_image->memory));
 
     // Bind the memory
-    VK_CHECK(vkBindImageMemory(context->device.logical_device, out_image->handle, out_image->memory, 0));  // TODO: configurable memory offset.
-
+    // TODO: configurable memory offset.
+    VK_CHECK(vkBindImageMemory(context->device.logical_device, out_image->handle, out_image->memory, 0));  
     // Create view
     if (create_view) {
         out_image->view = 0;
