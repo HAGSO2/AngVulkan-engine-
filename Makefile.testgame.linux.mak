@@ -6,7 +6,8 @@ ASSEMBLY := testgame
 EXTENSION := 
 CXX := clang++
 COMPILER_FLAGS := -std=c++17 -g -MD -Werror=vla -fdeclspec -fPIC
-INCLUDE_FLAGS := -Iengine/src -Itestgame\include
+# INCLUDE_FLAGS := -Iengine/src -Itestgame/include
+INCLUDE_FLAGS := -Iengine/src -I$(VULKAN_SDK)/include
 LINKER_FLAGS := -L./$(BUILD_DIR)/ -lengine -Wl,-rpath,'$$ORIGIN'
 DEFINES := -D_DEBUG -DKIMPORT
 
@@ -36,8 +37,8 @@ compile: #compile .cpp files
 
 .PHONY: clean
 clean: # clean build directory
-	rm -rf $(BUILD_DIR)\$(ASSEMBLY)
-	rm -rf $(OBJ_DIR)\$(ASSEMBLY)
+	rm -rf $(BUILD_DIR)/$(ASSEMBLY)
+	rm -rf $(OBJ_DIR)/$(ASSEMBLY)
 
 $(OBJ_DIR)/%.cpp.o: %.cpp # compile .cpp to .o object
 	@echo   $<...

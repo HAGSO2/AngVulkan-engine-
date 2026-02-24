@@ -7,8 +7,9 @@ EXTENSION := .so
 CXX := clang++
 COMPILER_FLAGS := -std=c++17 -g -MD -Werror=vla -fdeclspec -fPIC
 INCLUDE_FLAGS := -Iengine/src -I$(VULKAN_SDK)/include
-LINKER_FLAGS := -g -shared -lvulkan -lxcb -lX11 -lX11-xcb -lm -lxkbcommon -L$(VULKAN_SDK)/lib -L/usr/X11R6/lib, -rpath ,'$$ORIGIN'
-DEFINES := -D_DEBUG -DKEXPORT
+LINKER_FLAGS := -g -shared -lvulkan -lxcb -lX11 -lX11-xcb -lm -lxkbcommon -L$(VULKAN_SDK)/Lib -L/usr/X11R6/lib
+#, -rpath ,'$$ORIGIN'
+DEFINES := -D_DEBUG -DTEXPORT -D_CTR_SECURE_NO_WARNINGS
 
 # Make does not offer a recursive wildcard function, so here's one:
 #rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
@@ -28,19 +29,19 @@ scaffold: # create build directory
 .PHONY: link
 link: scaffold $(OBJ_FILES) # link
 	@echo Linking $(ASSEMBLY)...
-	@$(CXX) $(OBJ_FILES) -o $(BUILD_DIR)/$(ASSEMBLY)$(EXTENSION) $(LINKER_FLAGS)
+	@$(CXX) $(OBJ_FILES) -o $(BUILD_DIR)/lib$(ASSEMBLY)$(EXTENSION) $(LINKER_FLAGS)
 
 .PHONY: compile
 compile: #compile .cpp files
 	@echo Compiling...
--include $(OBJ_FILES:.o=.d)
+#-include $(OBJ_FILES:.o=.d)
 .PHONY: clean
 clean: # clean build directory
-	rm -rf $(BUILD_DIR)\$(ASSEMBLY)
-	rm -rf $(OBJ_DIR)\$(ASSEMBLY)
+	rm -rf $(BUILD_DIR)/$(ASSEMBLY)
+	rm -rf $(OBJ_DIR)/$(ASSEMBLY)
 
 $(OBJ_DIR)/%.cpp.o: %.cpp # compile .cpp to .o object
 	@echo   $<...
 	@$(CXX) $< $(COMPILER_FLAGS) -c -o $@ $(DEFINES) $(INCLUDE_FLAGS)
 
--include $(OBJ_FILES:.o=.d)
+#-include $(OBJ_FILES:.o=.d)
