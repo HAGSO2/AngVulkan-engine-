@@ -106,19 +106,19 @@ b8 vulkan_device_create(vulkan_context* context, vulkan_options* options) {
     vkGetDeviceQueue(
         context->device.logical_device,
         context->device.graphics_queue_index,
-        context->device.graphics_queue_index,
+        0,
         &context->device.graphics_queue);
 
     vkGetDeviceQueue(
         context->device.logical_device,
         context->device.present_queue_index,
-        context->device.present_queue_index,
+        0,
         &context->device.present_queue);
 
     vkGetDeviceQueue(
         context->device.logical_device,
         context->device.transfer_queue_index,
-        context->device.transfer_queue_index,
+        0,
         &context->device.transfer_queue);
     KINFO("Queues obtained.");
 

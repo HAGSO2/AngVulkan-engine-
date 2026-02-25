@@ -13,6 +13,7 @@ int main(void){
     Game game_inst = Game();
     vulkan_options options{};
     options.sampler_anisotropy = TRUE;
+    options.discrete_gpu = TRUE;
     Application app = Application(100,100,1280,720, "First Vulkan Test", "Angel C++ Vulkan Engine", &options);
     
     // Initialization.
