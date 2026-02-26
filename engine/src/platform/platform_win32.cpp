@@ -210,7 +210,7 @@ LRESULT CALLBACK win32_process_message(HWND hwnd, u32 msg, WPARAM w_param, LPARA
         case WM_SYSKEYUP: {
             // Key pressed/released
             b8 pressed = (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN);
-            keys key = (u16)w_param;
+            keys key = static_cast<keys>(w_param);
 
             // Pass to the input subsystem for processing.
             input_process_key(key, pressed);
