@@ -2,11 +2,12 @@
 
 #include "renderer_types.inl"
 #include "core/application.h"
+#include "config/renderer_options.h"
 
 struct static_mesh_data;
 struct platform_state;
 
-b8 renderer_initialize(const char* application_name, const char* engine_name, struct platform_state* plat_state, Application* app);
+b8 renderer_initialize(const char* application_name, const char* engine_name, struct platform_state* plat_state, vulkan_options* opt);
 void renderer_shutdown();
 
 void renderer_on_resized(u16 width, u16 height);

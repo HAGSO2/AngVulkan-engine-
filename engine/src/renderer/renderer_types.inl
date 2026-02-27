@@ -3,6 +3,7 @@
 #include "defines.h"
 
 #include "core/application.h"
+#include "config/renderer_options.h"
 
 typedef enum renderer_backend_type {
     RENDERER_BACKEND_TYPE_VULKAN,
@@ -14,7 +15,7 @@ typedef struct renderer_backend {
     struct platform_state* plat_state;
     u64 frame_number;
 
-    b8 (*initialize)(struct renderer_backend* backend, const char* application_name, const char* engine_name, struct platform_state* plat_state, Application* app);
+    b8 (*initialize)(struct renderer_backend* backend, const char* application_name, const char* engine_name, struct platform_state* plat_state, vulkan_options* opt);
 
     void (*shutdown)(struct renderer_backend* backend);
 

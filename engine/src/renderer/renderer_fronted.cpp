@@ -9,14 +9,14 @@ struct platform_state;
 // Backend render context.
 static renderer_backend* backend = 0;
 
-b8 renderer_initialize(const char* application_name, const char* engine_name, struct platform_state* plat_state, Application* app) {
+b8 renderer_initialize(const char* application_name, const char* engine_name, struct platform_state* plat_state, vulkan_options* opt) {
     backend = new renderer_backend{0};
 
     // TODO: make this configurable.
     renderer_backend_create(RENDERER_BACKEND_TYPE_VULKAN, plat_state, backend);
     backend->frame_number = 0;
 
-    if (!backend->initialize(backend, application_name, engine_name, plat_state, app)) {
+    if (!backend->initialize(backend, application_name, engine_name, plat_state, opt)) {
         KFATAL("Renderer backend failed to initialize. Shutting down.");
         return FALSE;
     }

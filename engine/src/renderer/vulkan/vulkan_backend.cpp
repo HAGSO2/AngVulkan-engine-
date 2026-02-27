@@ -32,14 +32,13 @@ void create_command_buffers(renderer_backend* backend);
 void regenerate_framebuffers(renderer_backend* backend, vulkan_swapchain* swapchain, vulkan_renderpass* renderpass);
 b8 recreate_swapchain(renderer_backend* backend);
 
-b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* application_name, const char* engine_name, struct platform_state* plat_state
-, Application* app) {
+b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* application_name, const char* engine_name, struct platform_state* plat_state, vulkan_options* opt) {
 
     // Function pointers
     context.find_memory_index = find_memory_index;
 
     //Application size
-    app->application_get_framebuffer_size(&cached_framebuffer_width, &cached_framebuffer_height);
+    application_get_framebuffer_size(&cached_framebuffer_width, &cached_framebuffer_height);
     context.framebuffer_width = (cached_framebuffer_width != 0) ? cached_framebuffer_width : 800;
     context.framebuffer_height = (cached_framebuffer_height != 0) ? cached_framebuffer_height : 600;
     cached_framebuffer_width = 0;
@@ -130,7 +129,7 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
     KDEBUG("Vulkan surface created.");
 
     // Device creation
-    if (!vulkan_device_create(&context,app->GetVlkOptions())) {
+    if (!vulkan_device_create(&context,opt)) {
         KERROR("Failed to create device!");
         return FALSE;
     }

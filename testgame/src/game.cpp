@@ -1,24 +1,28 @@
 #include <core/logger.h>
 #include <game_types.h>
 #include <platform/platform.h>
+#include "game.h"
 
-Game::Game() 
+void Game() 
 {
-    state = platform_allocate(sizeof(game_state), FALSE);
+    //state = new game_state;
 };
 
-b8 Game::initialize(Game* game_inst) {
+b8 game_initialize(game* game_inst){
     KDEBUG("game_initialize() called!");
+
+    game_state* state = (game_state*)game_inst->state;
+    
     return TRUE;
 }
 
-b8 Game::update(Game* game_inst, f32 delta_time) {
+b8 game_update(game* game_inst, f32 delta_time){
     return TRUE;
 }
 
-b8 Game::render(Game* game_inst, f32 delta_time) {
+b8 game_render(game* game_inst, f32 delta_time){
     return TRUE;
 }
 
-void Game::on_resize(Game* game_inst, u32 width, u32 height) {
+void game_on_resize(game* game_inst, u32 width, u32 heigth){
 }

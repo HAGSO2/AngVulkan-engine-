@@ -1,15 +1,12 @@
+#pragma once
+
 #include <vulkan/vulkan.h>
 #include "core/logger.h"
 #include "core/application.h"
 #include "config/renderer_options.h"
-
-void initialize_vulkan(Application app);
-
-#pragma once
-
 #include "renderer/renderer_backend.h"
 
-b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* application_name, const char* engine_name, struct platform_state* plat_state, Application* app);
+b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* application_name, const char* engine_name, struct platform_state* plat_state, vulkan_options* opt);
 void vulkan_renderer_backend_shutdown(renderer_backend* backend);
 
 void vulkan_renderer_backend_on_resized(renderer_backend* backend, u16 width, u16 height);
