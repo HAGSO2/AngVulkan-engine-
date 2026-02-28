@@ -61,7 +61,7 @@ b8 application_create(game* game_inst) {
 
     if (!platform_startup(
             &app_state->platform,
-            game_inst->app_config.name,
+            game_inst->app_config.name.c_str(),
             game_inst->app_config.start_pos_x,
             game_inst->app_config.start_pos_y,
             game_inst->app_config.start_width,
@@ -79,7 +79,7 @@ b8 application_create(game* game_inst) {
     }
 
     // Renderer startup
-    if (!renderer_initialize(game_inst->app_config.name, game_inst->app_config.engine, &app_state->platform, game_inst->app_config.vlk_opt)) {
+    if (!renderer_initialize(game_inst->app_config.name.c_str(), game_inst->app_config.engine.c_str(), &app_state->platform, game_inst->app_config.vlk_opt)) {
         //if (!renderer_initialize(app_config.name.c_str(), app_config.engine.c_str(), &app_state->platform, vlk_opt)) {
         KFATAL("Failed to initialize renderer. Aborting application.");
         return FALSE;

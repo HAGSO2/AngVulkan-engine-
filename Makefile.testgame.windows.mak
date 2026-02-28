@@ -2,12 +2,12 @@ DIR := $(subst /,\,${CURDIR})
 BUILD_DIR := bin
 OBJ_DIR := obj
 
-ASSEMBLY := testbed
+ASSEMBLY := testgame
 EXTENSION := .exe
-CXX := clang++
-COMPILER_FLAGS := -std=c++17 -g -Wno-missing-braces -fdeclspec #-fPIC
-INCLUDE_FLAGS := -Iengine\src -Itestbed\src 
-LINKER_FLAGS := -g -lengine.lib -L$(OBJ_DIR)\engine -L$(BUILD_DIR) #-Wl,-rpath,.
+CXX := g++
+COMPILER_FLAGS := -std=c++17 -g -MD -Werror=vla -Wno-missing-braces -fdeclspec #-fPIC
+INCLUDE_FLAGS := -Iengine\src -Itestgame\src 
+LINKER_FLAGS := -g -lengine -L$(OBJ_DIR)\engine -L$(BUILD_DIR) #-Wl,-rpath,.
 DEFINES := -D_DEBUG -DKIMPORT
 
 # Make does not offer a recursive wildcard function, so here's one:

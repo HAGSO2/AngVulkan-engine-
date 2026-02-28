@@ -2,6 +2,7 @@
 
 #include "defines.h"
 #include "config/renderer_options.h"
+#include <string>
 
 struct game;
 
@@ -20,10 +21,10 @@ typedef struct application_config{
     i16 start_height;
 
     // The application name used in windowing , if applicable.
-    char* name;
+    std::string name;
 
     //The name of the engine
-    char* engine;
+    std::string engine;
 
     //Renderer options
     vulkan_options* vlk_opt;

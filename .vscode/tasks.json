@@ -20,7 +20,7 @@
         },
         {
             "type": "shell",
-            "label": "Build Testbed",
+            "label": "Build Testgame",
             "windows": {
                 "command": "${workspaceFolder}/testgame/build.bat"
             },

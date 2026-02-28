@@ -3,6 +3,7 @@
 #include "core/logger.h"
 #include "core/application.h"
 #include "vulkan_types.inl"
+#include "platform/platform.h"
 
 void vulkan_pipeline_create(vulkan_context* c);
 

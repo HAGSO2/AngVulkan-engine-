@@ -3,11 +3,6 @@
 #include <platform/platform.h>
 #include "game.h"
 
-void Game() 
-{
-    //state = new game_state;
-};
-
 b8 game_initialize(game* game_inst){
     KDEBUG("game_initialize() called!");
 
