@@ -338,10 +338,6 @@ b8 vulkan_renderer_backend_begin_frame(renderer_backend* backend, f32 delta_time
         return FALSE;
     }
 
-    // // Reset the fence for use on the next frame
-    // vulkan_fence_reset(context, &context.imgAvailableFence);
-
-    //NOTE: Hasta aquí llega lo que he cambiado
     // Acquire the next image from the swap chain. Pass along the semaphore that should signaled when this completes.
     // This same semaphore will later be waited on by the queue submission to ensure this image is available.
     if (!vulkan_swapchain_acquire_next_image_index(
@@ -362,6 +358,7 @@ b8 vulkan_renderer_backend_begin_frame(renderer_backend* backend, f32 delta_time
     context.main_renderpass.h = context.framebuffer_height;
 
     // Begin the render pass.
+    //NOTE: El error se produce aquí
     vulkan_renderpass_begin(
         command_buffer,
         &context.main_renderpass,
@@ -430,8 +427,6 @@ b8 vulkan_renderer_backend_end_frame(renderer_backend* backend, f32 delta_time) 
         return FALSE;
     }
 
-    //VK_CHECK(vkQueueSubmit(context.device.graphics_queue, 1, &submit_info, context.imgAvailableFence.handle));
-
     vulkan_command_buffer_update_submitted(command_buffer);
 
     // Give the image back to the swapchain.
@@ -443,13 +438,7 @@ b8 vulkan_renderer_backend_end_frame(renderer_backend* backend, f32 delta_time) 
         context.queue_complete_semaphores[context.current_frame],
         context.image_index);
     
-    
-
-    
     //NOTE: Quizá se deba a que tengo que actualizar y re-crear la cola con las dimensiones adecuadas
-    VK_CHECK(vkDeviceWaitIdle(context.device.logical_device));
-    vkFreeCommandBuffers(context.device.logical_device, context.device.graphics_command_pool,1,&command_buffer->handle);
-    // vulkan_command_buffer_free(context, context.device.graphics_command_pool, command_buffer);
 
     return TRUE;
 }
