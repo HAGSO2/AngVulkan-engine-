@@ -1,7 +1,9 @@
 #include <core/logger.h>
 #include <game_types.h>
-#include <platform/platform.h>
+#include <core/event.h>
 #include "game.h"
+
+b8 input_Example(u16 code, void* sender, void* listener_inst, event_context context);
 
 b8 game_initialize(game* game_inst){
     KDEBUG("game_initialize() called!");

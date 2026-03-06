@@ -41,3 +41,4 @@
 *.dwo
 /bin
 testgame/src/entry.cpp
+engine/src/core/application.cpp

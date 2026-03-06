@@ -32,7 +32,10 @@ b8 application_on_resized(u16 code, void* sender, void* listener_inst, event_con
 void options_initialize(game* game_inst){
     game_inst->app_config.vlk_opt = new vulkan_options();
     game_inst->app_config.vlk_opt->sampler_anisotropy = TRUE;
-    game_inst->app_config.vlk_opt->discrete_gpu = TRUE;
+    game_inst->app_config.vlk_opt->discrete_gpu = FALSE;
+
+    app_state.width = game_inst->app_config.start_width;
+    app_state.height = game_inst->app_config.start_height;
 }
 
 b8 application_create(game* game_inst) {
@@ -74,16 +77,16 @@ b8 application_create(game* game_inst) {
     //Set the options
     options_initialize(app_state.game_inst);
 
-    // Initialize the game.
-    if (!app_state.game_inst->initialize(app_state.game_inst)) {
-        KFATAL("Game failed to initialize.");
-        return FALSE;
-    }
-
     // Renderer startup
     if (!renderer_initialize(game_inst->app_config.name.c_str(), game_inst->app_config.engine.c_str(), &app_state.platform, game_inst->app_config.vlk_opt)) {
         //if (!renderer_initialize(app_config.name.c_str(), app_config.engine.c_str(), &app_state.platform, vlk_opt)) {
         KFATAL("Failed to initialize renderer. Aborting application.");
+        return FALSE;
+    }
+
+    // Initialize the game.
+    if (!app_state.game_inst->initialize(app_state.game_inst)) {
+        KFATAL("Game failed to initialize.");
         return FALSE;
     }
 
@@ -223,7 +226,6 @@ b8 application_on_key(u16 code, void* sender, void* listener_inst, event_context
 
 b8 application_on_resized(u16 code, void* sender, void* listener_inst, event_context context) {
     if (code == EVENT_CODE_RESIZED) {
-        KDEBUG("Ping!");
         u16 width = context.data.u16[0];
         u16 height = context.data.u16[1];
 
