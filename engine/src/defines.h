@@ -100,5 +100,15 @@ STATIC_ASSERT(sizeof(f64) == 8, "Expected f64 to be 8 bytes.");
 
 #define KCLAMP(value, min, max) (value <= min) ? min : (value >= max) ? max \
                                                                       : value;
+
+// Inlining
+#ifdef _MSC_VER
+#define KINLINE __forceinline
+#define KNOINLINE __declspec(noinline)
+#else
+#define KSINLINE static inline
+#define KINLINE inline
+#define KNOINLINE
+#endif
                    
 #define ARRAYSIZE(a) (sizeof(a) / sizeof(*(a)))
