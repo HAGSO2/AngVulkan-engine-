@@ -1,6 +1,7 @@
 #pragma once
 
 #include "defines.h"
+#include "kmath.h"
 
 /*
  * See for more on : 
@@ -193,13 +194,224 @@ struct vec4 {
         struct { f32 s, t, p, q; };
         f32 elements[4];
     };
+
+    KSINLINE vec4 zero(){return vec4{0,0,0,0};}
+    KSINLINE vec4 one(){return vec4{1,1,1,1};}
+    KSINLINE vec4 right(){return vec4{1,0,0,0};}
+    KSINLINE vec4 up(){return vec4{0,1,0,0};}
+    KSINLINE vec4 back(){return vec4{0,0,1,0};}
+    KINLINE f32 length_squared();
+    KINLINE f32 lenght();
+    
+    KINLINE void normalize();
+    /**
+     * @brief Returns the dot product between the provided vectors. Typically used
+     * to calculate the difference in direction. 
+     * For the vec4 works independent from the struct: vec4_dot_f32
+     */
+    //KINLINE f32 dot(vec4 b);
+    KINLINE const b8 compare(vec4 b, f32 tolerance);
+    KINLINE f32 distance(vec4 b);
+
+    /**************
+     * OPERADORES *
+     **************/
+
+    vec4 operator+(const vec4& b) const
+    {
+        return {x + b.x, y + b.y, z + b.z, w + b.w};
+    }
+    vec4& operator+=(const vec4& b)
+    {
+        x += b.x;
+        y += b.y;
+        z += b.z;
+        w += b.w;
+        return *this;
+    }
+    KSINLINE vec4 subs(vec4 a, vec4 b){
+        return vec4{a.x-b.x,a.y-b.y,a.z-b.z, a.w-b.w};
+    }
+    vec4 operator-(const vec4& b) const
+    {
+        return {x - b.x, y - b.y, z-b.z, w-b.w};
+    }
+    vec4& operator-=(const vec4& b)
+    {
+        x -= b.x;
+        y -= b.y;
+        z -= b.z;
+        w -= b.w;
+        return *this;
+    }
+    vec4& operator*=(const f32 s)
+    {
+        x *= s;
+        y *= s;
+        z *= s;
+        w *= s;
+        return *this;
+    }
+    vec4& operator*=(const vec4 b){
+        x *= b.x;
+        y *= b.y;
+        z *= b.z;
+        w *= b.w;
+        return *this;
+    }
+    vec4& operator/=(const f32 s)
+    {
+        x /= s;
+        y /= s;
+        z /= s;
+        w /= s;
+        return *this;
+    }
+    vec4& operator/=(const vec4& b){
+        x /= b.x;
+        y /= b.y;
+        z /= b.z;
+        w /= b.w;
+        return *this;
+    }
 };
 
-typedef vec4 quat;
+struct quat : vec4
+{
+    KSINLINE quat identity(){return quat{0,0,0,1};}
+    KINLINE f32 normal(){return vec4::length_squared();}
+    KINLINE quat normalize();
+    KINLINE quat conjugate();
+    KINLINE quat inverse(){return (this->conjugate()).normalize();}
+    KSINLINE quat mult(quat q_0, quat q_1);
+    KINLINE f32 dot(quat q_1);
+    KSINLINE quat from_axis_angle(vec3 axis, f32 angle, b8 normalize);
+    KINLINE quat slerp(quat q_1, f32 percentage);
+    
+    quat operator*(const quat b){return mult(*this,b);}
 
-typedef union mat4_u {
+
+};
+
+struct mat4 {
     f32 data[16];
-} mat4;
 
-vec3 tovec3(vec4 a){return vec3{a.x,a.y,a.z};}
-vec4 tovec4(vec3 a){return vec4{a.x,a.y,a.z,0};}
+    KSINLINE mat4 identity();
+    /**
+     * @brief Returns a backward vector relative to the provided matrix.
+     * 
+     * @param matrix The matrix from which to base the vector.
+     * @return A 3-component directional vector.
+     */
+    KINLINE vec3 backward();
+    /**
+     * @brief Returns a upward vector relative to the provided matrix.
+     * 
+     * @param matrix The matrix from which to base the vector.
+     * @return A 3-component directional vector.
+     */
+    KINLINE vec3 up();
+    /**
+     * @brief Returns a right vector relative to the provided matrix.
+     * 
+     * @param matrix The matrix from which to base the vector.
+     * @return A 3-component directional vector.
+     */
+    KINLINE vec3 right();
+    /**
+     * @brief Returns the result of multiplying matrix_0 and matrix_1.
+     * 
+     * @param matrix_0 The first matrix to be multiplied.
+     * @param matrix_1 The second matrix to be multiplied.
+     * @return The result of the matrix multiplication.
+     */
+    KSINLINE mat4 multiply(mat4 matrix_0, mat4 matrix_1);
+    /**
+     * @brief Creates and returns an orthographic projection matrix. Typically used to
+     * render flat or 2D scenes.
+     * 
+     * @param left The left side of the view frustum.
+     * @param right The right side of the view frustum.
+     * @param bottom The bottom side of the view frustum.
+     * @param top The top side of the view frustum.
+     * @param near_clip The near clipping plane distance.
+     * @param far_clip The far clipping plane distance.
+     * @return A new orthographic projection matrix. 
+     */
+    KSINLINE mat4 orthographic(f32 left, f32 right, f32 bottom, f32 top, f32 near_clip, f32 far_clip);
+    /**
+     * @brief Creates and returns a perspective matrix. Typically used to render 3d scenes.
+     * 
+     * @param fov_radians The field of view in radians.
+     * @param aspect_ratio The aspect ratio.
+     * @param near_clip The near clipping plane distance.
+     * @param far_clip The far clipping plane distance.
+     * @return A new perspective matrix. 
+     */
+    KSINLINE mat4 perspective(f32 fov_radians, f32 aspect_ratio, f32 near_clip, f32 far_clip);
+    /**
+     * @brief Creates and returns a look-at matrix, or a matrix looking 
+     * at target from the perspective of position.
+     * 
+     * @param position The position of the matrix.
+     * @param target The position to "look at".
+     * @param up The up vector.
+     * @return A matrix looking at target from the perspective of position. 
+     */
+    KSINLINE mat4 look_at(vec3 position, vec3 target, vec3 up);
+    /**
+     * @brief Returns a transposed copy of the provided matrix (rows->colums)
+     * 
+     * @param matrix The matrix to be transposed.
+     * @return A transposed copy of of the provided matrix.
+     */
+    KINLINE mat4 transposed();
+    /**
+     * @brief Creates and returns an inverse of the matrix itself.
+     * 
+     * @return A inverted copy of the provided matrix. 
+     */
+    KINLINE mat4 inverse();
+    KSINLINE mat4 scale(vec3 scale);
+    KSINLINE mat4 euler_x(f32 angle_radians);
+    KSINLINE mat4 euler_y(f32 angle_radians);
+    KSINLINE mat4 euler_z(f32 angle_radians);
+    KSINLINE mat4 euler_xyz(f32 x_radians, f32 y_radians, f32 z_radians);
+};
+
+struct vertex_3d {
+    vec3 position;
+    vec2 texcoord;
+};
+
+struct vertex_2d {
+    vec2 position;
+    vec2 texcoord;
+};
+
+KSINLINE vec3 to_vec3(vec4 a){return vec3{a.x,a.y,a.z};}
+KSINLINE vec4 to_vec4(vec3 a){return vec4{a.x,a.y,a.z,0};}
+KSINLINE mat4 to_mat4(quat a);
+KSINLINE mat4 to_rotation_mat4(quat q, vec3 center);
+KSINLINE f32 vec4_dot_f32(
+    f32 a0, f32 a1, f32 a2, f32 a3,
+    f32 b0, f32 b1, f32 b2, f32 b3);
+/**
+ * @brief Converts provided degrees to radians.
+ * 
+ * @param degrees The degrees to be converted.
+ * @return The amount in radians.
+ */
+KSINLINE f32 deg_to_rad(f32 degrees) {
+    return degrees * K_DEG2RAD_MULTIPLIER;
+}
+
+/**
+ * @brief Converts provided radians to degrees.
+ * 
+ * @param radians The radians to be converted.
+ * @return The amount in degrees.
+ */
+KSINLINE f32 rad_to_deg(f32 radians) {
+    return radians * K_RAD2DEG_MULTIPLIER;
+}

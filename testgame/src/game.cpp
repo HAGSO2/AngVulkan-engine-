@@ -1,6 +1,7 @@
 #include <core/logger.h>
 #include <game_types.h>
 #include <core/event.h>
+#include <math/math_types.h>
 #include "game.h"
 
 b8 input_Example(u16 code, void* sender, void* listener_inst, event_context context);
@@ -9,7 +10,8 @@ b8 game_initialize(game* game_inst){
     KDEBUG("game_initialize() called!");
 
     game_state* state = (game_state*)game_inst->state;
-    
+    quat cual;
+    cual.conjugate();
     return TRUE;
 }
 
