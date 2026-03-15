@@ -10,8 +10,6 @@ b8 game_initialize(game* game_inst){
     KDEBUG("game_initialize() called!");
 
     game_state* state = (game_state*)game_inst->state;
-    quat cual;
-    cual.conjugate();
     return TRUE;
 }
 

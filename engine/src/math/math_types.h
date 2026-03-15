@@ -10,6 +10,10 @@
  * 
  */
 
+// ------------------------------------------
+#pragma region Vector 2
+// ------------------------------------------
+
 struct vec2
 {
     // An array of x, y
@@ -95,6 +99,12 @@ struct vec2
         return *this;
     }
 };
+
+#pragma endregion
+
+// ------------------------------------------
+#pragma region Vector 3
+// ------------------------------------------
 
 struct vec3
 {
@@ -185,6 +195,12 @@ struct vec3
     }
 };
 
+#pragma endregion
+
+// ------------------------------------------
+#pragma region Vector 4
+// ------------------------------------------
+
 struct vec4 {
     // An array of x, y, z, w
     union
@@ -200,8 +216,8 @@ struct vec4 {
     KSINLINE vec4 right(){return vec4{1,0,0,0};}
     KSINLINE vec4 up(){return vec4{0,1,0,0};}
     KSINLINE vec4 back(){return vec4{0,0,1,0};}
-    KINLINE f32 length_squared();
-    KINLINE f32 lenght();
+    KINLINE f32 length_squared() {return x*x+y*y+z*z+w*w;}
+    KINLINE f32 lenght() {return ksqrt(length_squared());}
     
     KINLINE void normalize();
     /**
@@ -276,13 +292,19 @@ struct vec4 {
     }
 };
 
+#pragma endregion
+
+// ------------------------------------------
+#pragma region Quaternion
+// ------------------------------------------
+
 struct quat : vec4
 {
     KSINLINE quat identity(){return quat{0,0,0,1};}
     KINLINE f32 normal(){return vec4::length_squared();}
-    KINLINE quat normalize();
-    KINLINE quat conjugate();
-    KINLINE quat inverse(){return (this->conjugate()).normalize();}
+    KINLINE void normalize() {vec4::normalize();}
+    KINLINE quat conjugate(){return{-x,-y-z,w};};
+    KINLINE void inverse(){(this->conjugate()).normalize();}
     KSINLINE quat mult(quat q_0, quat q_1);
     KINLINE f32 dot(quat q_1);
     KSINLINE quat from_axis_angle(vec3 axis, f32 angle, b8 normalize);
@@ -292,6 +314,12 @@ struct quat : vec4
 
 
 };
+
+#pragma endregion
+
+// ------------------------------------------
+#pragma region Matrix 4
+// ------------------------------------------
 
 struct mat4 {
     f32 data[16];
@@ -378,6 +406,8 @@ struct mat4 {
     KSINLINE mat4 euler_z(f32 angle_radians);
     KSINLINE mat4 euler_xyz(f32 x_radians, f32 y_radians, f32 z_radians);
 };
+
+#pragma endregion
 
 struct vertex_3d {
     vec3 position;

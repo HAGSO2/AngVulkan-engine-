@@ -76,9 +76,6 @@ KINLINE f32 vec3::distance(vec3 b) {
 #pragma region Vector 4
 // ------------------------------------------
 
-KINLINE f32 vec4::length_squared(){return x*x+y*y+z*z+w*w;}
-KINLINE f32 vec4::lenght(){return ksqrt(length_squared());}
-
 KINLINE void vec4::normalize() {
     f32 lenght = ksqrt(length_squared());
     x /= lenght;
@@ -387,20 +384,6 @@ KINLINE mat4 mat4::euler_xyz(f32 x_radians, f32 y_radians, f32 z_radians) {
 #pragma region Quaternion
 // ------------------------------------------
 
-KINLINE quat quat::normalize(){
-    quat q = *this;
-    q.vec4::normalize();
-    return q;
-}
-
-KINLINE quat quat::conjugate() {
-    return (quat){
-        -x,
-        -y,
-        -z,
-        w};
-}
-
 KINLINE quat quat::mult(quat q_0, quat q_1) {
     quat out_quaternion;
 
@@ -441,7 +424,8 @@ KINLINE quat quat::from_axis_angle(vec3 axis, f32 angle, b8 normalize){
 
     quat q = (quat){s * axis.x, s * axis.y, s * axis.z, c};
     if (normalize) {
-        return q.normalize();
+        q.normalize();
+        return q;
     }
     return q;
 }
@@ -451,8 +435,10 @@ KINLINE quat quat::slerp(quat q_1, f32 percentage) {
     // Source: https://en.wikipedia.org/wiki/Slerp
     // Only unit quaternions are valid rotations.
     // Normalize to avoid undefined behavior.
-    quat v0 = this->normalize();
-    quat v1 = q_1.normalize();
+    quat v0 = *this;
+    v0.normalize();
+    quat v1 = q_1;
+    v1.normalize();
 
     // Compute the cosine of the angle between the two vectors.
     f32 dot = v0.dot(v1);
@@ -479,7 +465,8 @@ KINLINE quat quat::slerp(quat q_1, f32 percentage) {
             v0.z + ((v1.z - v0.z) * percentage),
             v0.w + ((v1.w - v0.w) * percentage)};
 
-        return out_quaternion.normalize();
+        out_quaternion.normalize();
+        return out_quaternion;
     }
 
     // Since dot is in range [0, DOT_THRESHOLD], acos is safe
@@ -503,7 +490,8 @@ KINLINE mat4 quat_to_mat4(quat q) {
 
     // https://stackoverflow.com/questions/1556260/convert-quaternion-rotation-to-rotation-matrix
 
-    quat n = q.normalize();
+    quat n = q;
+    n.normalize();
 
     out_matrix.data[0] = 1.0f - 2.0f * n.y * n.y - 2.0f * n.z * n.z;
     out_matrix.data[1] = 2.0f * n.x * n.y - 2.0f * n.z * n.w;
@@ -525,7 +513,8 @@ KSINLINE mat4 to_mat4(quat q){
 
     // https://stackoverflow.com/questions/1556260/convert-quaternion-rotation-to-rotation-matrix
 
-    quat n = q.normalize();
+    quat n = q;
+    n.normalize();
 
     out_matrix.data[0] = 1.0f - 2.0f * n.y * n.y - 2.0f * n.z * n.z;
     out_matrix.data[1] = 2.0f * n.x * n.y - 2.0f * n.z * n.w;

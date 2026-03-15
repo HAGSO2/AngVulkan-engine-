@@ -309,38 +309,6 @@ f64 platform_get_absolute_time() {
     return now.tv_sec + now.tv_nsec * 0.000000001;
 }
 
-char *platform_read_file(const char *path, int *length)
-{
-    char *result = 0;
-
-    // This opens the file
-    FILE *file = fopen(path, "rb");
-
-    if (file)
-    {
-        fseek(file, 0, SEEK_END);
-        *length = ftell(file);
-        fseek(file, 0, SEEK_SET);
-
-        result = new char[*length];
-
-        if (fread(result, 1, *length, file) != *length)
-        {
-            KERROR("Failed to read file: %s", path);
-            delete[] result;
-            result = 0;
-        }
-
-        fclose(file);
-        }
-    else
-    {
-        KERROR("Failed to open file: %s", path);
-    }
-
-    return result;
-}
-
 void platform_sleep(u64 ms) {
 #if _POSIX_C_SOURCE >= 199309L
     struct timespec ts;

@@ -43,12 +43,16 @@ void vulkan_image_create(
     VkMemoryRequirements memory_requirements;
     vkGetImageMemoryRequirements(context->device.logical_device, out_image->handle, &memory_requirements);
 
+    KDEBUG("Something");
     i32 memory_type = context->find_memory_index(memory_requirements.memoryTypeBits, memory_flags);
     if (memory_type == -1) {
         KERROR("Required memory type not found. Image not valid.");
     }
 
     // Allocate memory
+    for(int i = 0; i  < 4; i++){
+        
+    }
     VkMemoryAllocateInfo memory_allocate_info = {VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
     memory_allocate_info.allocationSize = memory_requirements.size;
     memory_allocate_info.memoryTypeIndex = memory_type;

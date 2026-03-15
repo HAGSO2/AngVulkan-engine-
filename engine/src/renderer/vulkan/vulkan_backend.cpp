@@ -12,9 +12,12 @@
 #include "vulkan_pipeline.h"
 
 #include "core/logger.h"
-#include "utils/Astring.h"
+#include "core/Astring.h"
 
 #include "platform/platform.h"
+
+// Shaders
+#include "shaders/vulkan_object_shader.h"
 
 // static Vulkan context
 static vulkan_context context = vulkan_context{};
@@ -158,11 +161,6 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
     //Command Buffer
     create_command_buffers(backend);
 
-    //Pipeline
-    vulkan_pipeline_create(&context);
-    // set_descriptors(context);
-
-
     //Sync objects
     context.image_available_semaphores = vector<VkSemaphore>(context.swapchain.max_frames_in_flight);
     context.queue_complete_semaphores = vector<VkSemaphore>(context.swapchain.max_frames_in_flight);
@@ -195,6 +193,12 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
 
     // vulkan_fence_create(context, TRUE, &context.imgAvailableFence);
 
+    // Create builtin shaders
+    if (!vulkan_object_shader_create(&context, &context.object_shader)) {
+        KERROR("Error loading built-in basic_lighting shader.");
+        return false;
+    }
+
     KINFO("Vulkan renderer initialized successfully.");
     return TRUE;
 }
@@ -203,6 +207,8 @@ void vulkan_renderer_backend_shutdown(renderer_backend* backend) {
     vkDeviceWaitIdle(context.device.logical_device);
 
     //Destroying in opposite order of creation
+
+    vulkan_object_shader_destroy(&context, &context.object_shader);
 
     //Sync objects
     KINFO("Destroying sync objects...");
@@ -237,10 +243,6 @@ void vulkan_renderer_backend_shutdown(renderer_backend* backend) {
     //             context.allocator);
 
     // vulkan_fence_destroy(context, &context.imgAvailableFence);
-
-    //Pipeline
-    KINFO("Destroying pipeline...");
-    vulkan_pipeline_destroy(&context);
 
     // Command buffers
     KINFO("Destroying command buffers...");
@@ -354,18 +356,32 @@ b8 vulkan_renderer_backend_begin_frame(renderer_backend* backend, f32 delta_time
     vulkan_command_buffer_reset(command_buffer);
     vulkan_command_buffer_begin(command_buffer, FALSE, FALSE, FALSE);
 
+    // Dynamic state
+    VkViewport viewport;
+    viewport.x = 0.0f;
+    viewport.y = (f32)context.framebuffer_height;
+    viewport.width = (f32)context.framebuffer_width;
+    viewport.height = -(f32)context.framebuffer_height;
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+
+    // Scissor
+    VkRect2D scissor;
+    scissor.offset.x = scissor.offset.y = 0;
+    scissor.extent.width = context.framebuffer_width;
+    scissor.extent.height = context.framebuffer_height;
+
+    vkCmdSetViewport(command_buffer->handle, 0, 1, &viewport);
+    vkCmdSetScissor(command_buffer->handle, 0, 1, &scissor);
+
     context.main_renderpass.w = context.framebuffer_width;
     context.main_renderpass.h = context.framebuffer_height;
 
     // Begin the render pass.
-    //NOTE: El error se produce aquí
     vulkan_renderpass_begin(
         command_buffer,
         &context.main_renderpass,
         context.swapchain.framebuffers[context.image_index].handle);
-
-    // Rendering Commands
-    vulkan_pipeline_draw(&context);
 
     return TRUE;
 }
@@ -392,8 +408,6 @@ b8 vulkan_renderer_backend_end_frame(renderer_backend* backend, f32 delta_time) 
     // Reset the fence for use on the next frame
     vulkan_fence_reset(&context, &context.in_flight_fences[context.current_frame]);
 
-    VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
     // Submit the queue
     VkSubmitInfo submit_info = {};
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -409,7 +423,8 @@ b8 vulkan_renderer_backend_end_frame(renderer_backend* backend, f32 delta_time) 
     submit_info.waitSemaphoreCount = 1;
     submit_info.pWaitSemaphores = &context.image_available_semaphores[context.current_frame];
     
-    submit_info.pWaitDstStageMask = &waitStage;
+    // VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    // submit_info.pWaitDstStageMask = &waitStage;
 
     // Each semaphore waits on the corresponding pipeline stage to complete. 1:1 ratio.
     // VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT prevents subsequent colour attachment

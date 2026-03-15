@@ -42,3 +42,4 @@
 /bin
 testgame/src/entry.cpp
 engine/src/core/application.cpp
+build-all.sh
