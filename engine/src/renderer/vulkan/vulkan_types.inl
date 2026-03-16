@@ -204,7 +204,9 @@ typedef struct vulkan_context {
     vulkan_object_shader object_shader;
 
     u64 geometry_vertex_offset;
+    vulkan_fence vertex_fence;
     u64 geometry_index_offset;
+    vulkan_fence index_fence;
 
     i32 (*find_memory_index)(u32 type_filter, u32 property_flags);
 

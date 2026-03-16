@@ -1,11 +1,12 @@
 #pragma once
 
+#include "vulkan_fence.h"
 #include "vulkan_types.inl"
 
 b8 vulkan_buffer_create(
     vulkan_context* context,
     u64 size,
-    const VkBufferUsageFlagBits usage,
+    VkBufferUsageFlagBits usage,
     u32 memory_property_flags,
     b8 bind_on_create,
     vulkan_buffer* out_buffer);
@@ -23,6 +24,18 @@ void vulkan_buffer_bind(vulkan_context* context, vulkan_buffer* buffer, u64 offs
 
 void* vulkan_buffer_lock_memory(vulkan_context* context, vulkan_buffer* buffer, u64 offset, u64 size, u32 flags);
 void vulkan_buffer_unlock_memory(vulkan_context* context, vulkan_buffer* buffer);
+
+/**
+ * @brief Allocates space from a vulkan buffer. Provides the offset at which the
+ * allocation occurred. This will be required for data copying and freeing.
+ * 
+ * @param buffer A pointer to the buffer from which to allocate.
+ * @param size The size in bytes to be allocated.
+ * @param out_offset A pointer to hold the offset in bytes from the beginning of the buffer.
+ * @return True on success; otherwise false.
+ */
+b8 vulkan_buffer_allocate(vulkan_buffer* buffer, u64 size, u64* out_offset);
+
 
 void vulkan_buffer_load_data(vulkan_context* context, vulkan_buffer* buffer, u64 offset, u64 size, u32 flags, const void* data);
 

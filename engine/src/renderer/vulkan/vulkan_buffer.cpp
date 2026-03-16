@@ -3,6 +3,7 @@
 #include "vulkan_device.h"
 #include "vulkan_command_buffer.h"
 #include "vulkan_utils.h"
+#include "vulkan_fence.h"
 #include "core/Amemory.h"
 
 #include "core/logger.h"
@@ -10,14 +11,15 @@
 b8 vulkan_buffer_create(
     vulkan_context* context,
     u64 size,
-    const VkBufferUsageFlagBits usage,
+    VkBufferUsageFlagBits usage,
     u32 memory_property_flags,
     b8 bind_on_create,
     vulkan_buffer* out_buffer) {
-    out_buffer = new vulkan_buffer{};
+    *out_buffer = vulkan_buffer{};
     out_buffer->total_size = size;
     out_buffer->usage = usage;
     out_buffer->memory_property_flags = memory_property_flags;
+    out_buffer->memory = {};
 
     VkBufferCreateInfo buffer_info = {};
     buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -148,6 +150,21 @@ void* vulkan_buffer_lock_memory(vulkan_context* context, vulkan_buffer* buffer, 
 void vulkan_buffer_unlock_memory(vulkan_context* context, vulkan_buffer* buffer) {
     vkUnmapMemory(context->device.logical_device, buffer->memory);
 }
+
+// b8 vulkan_buffer_allocate(vulkan_buffer* buffer, u64 size, u64* out_offset){
+//     if(!buffer || !size || !out_offset){
+//         KERROR("vulkan_buffer_allocate requires valid buffer, a nonzero size and valid pointer to hold offset.");
+//         return FALSE;
+//     }
+
+//     if(!buffer->has_freelist){
+//         KWARN("vulkan_buffer_allocate called on a buffer not using freelists. Offset will not be valid. Call vulkan_buffer_load_data instead.");
+//         *out_offset = 0;
+//         return TRUE;
+//     }
+
+//     return freelist_allocate_block(&buffer->buffer_freelist, size, out_offset);
+// }
 
 void vulkan_buffer_load_data(vulkan_context* context, vulkan_buffer* buffer, u64 offset, u64 size, u32 flags, const void* data) {
     void* data_ptr;

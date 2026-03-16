@@ -40,6 +40,27 @@ void create_command_buffers(renderer_backend* backend);
 void regenerate_framebuffers(renderer_backend* backend, vulkan_swapchain* swapchain, vulkan_renderpass* renderpass);
 b8 recreate_swapchain(renderer_backend* backend);
 
+void upload_data_range(vulkan_context* context, VkCommandPool pool, VkFence fence, VkQueue queue, vulkan_buffer* buffer, u64 offset, u64 size, void* data) {
+    // if(!vulkan_buffer_allocate(buffer, size, out_offset)){
+    //     TERROR("upload_data_range failed to allocate from the given buffer!");
+    //     return FALSE;
+    // }
+
+    // Create a host-visible staging buffer to upload to. Mark it as the source of the transfer.
+    VkBufferUsageFlags flags = (VkBufferUsageFlags)(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    vulkan_buffer staging = {};
+    vulkan_buffer_create(context, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, flags, TRUE, &staging);
+
+    // Load the data into the staging buffer.
+    vulkan_buffer_load_data(context, &staging, 0, size, 0, data);
+
+    // Perform the copy from staging to the device local buffer.
+    vulkan_buffer_copy_to(context, pool, fence, queue, staging.handle, 0, buffer->handle, offset, size);
+
+    // Clean up the staging buffer.
+    vulkan_buffer_destroy(context, &staging);
+}
+
 #pragma region Initialize
 b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* application_name, const char* engine_name, struct platform_state* plat_state, vulkan_options* opt) {
     // Function pointers
@@ -171,7 +192,8 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
     context.in_flight_fences = vector<vulkan_fence>(context.swapchain.max_frames_in_flight);
 
     for (u8 i = 0; i < context.swapchain.max_frames_in_flight; ++i) {
-        VkSemaphoreCreateInfo semaphore_create_info = {VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
+        VkSemaphoreCreateInfo semaphore_create_info = {};
+        semaphore_create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
         vkCreateSemaphore(context.device.logical_device, &semaphore_create_info, context.allocator, &context.image_available_semaphores[i]);
         vkCreateSemaphore(context.device.logical_device, &semaphore_create_info, context.allocator, &context.queue_complete_semaphores[i]);
 
@@ -180,6 +202,9 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
         // cannot be rendered until a frame is "rendered" before it.
         vulkan_fence_create(&context, TRUE, &context.in_flight_fences[i]);
     }
+
+    vulkan_fence_create(&context, TRUE, &context.vertex_fence);
+    vulkan_fence_create(&context, TRUE, &context.index_fence);
 
     // In flight fences should not yet exist at this point, so clear the list. These are stored in pointers
     // because the initial state should be 0, and will be 0 when not in use. Acutal fences are not owned
@@ -204,6 +229,29 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
     }
 
     create_buffers(&context);
+
+    // TODO: temporary test code
+    const u32 vert_count = 3;
+    vertex_3d verts[vert_count];
+
+    verts[0].position.x = 0.0;
+    verts[0].position.y = -0.5;
+
+    verts[1].position.x = 0.5;
+    verts[1].position.y = 0.5;
+
+    verts[2].position.x = 0;
+    verts[2].position.y = 0.5;
+
+    // verts[3].position.x = 0.5;
+    // verts[3].position.y = -0.5;
+
+    const u32 index_count = 3;
+    u32 indices[index_count] = {0, 1, 2};
+
+    upload_data_range(&context, context.device.graphics_command_pool, 0, context.device.graphics_queue, &context.object_vertex_buffer, 0, sizeof(vertex_3d) * vert_count, verts);
+    upload_data_range(&context, context.device.graphics_command_pool, 0, context.device.graphics_queue, &context.object_index_buffer, 0, sizeof(u32) * index_count, indices);
+    // TODO: end temp code
 
     KINFO("Vulkan renderer initialized successfully.");
     return TRUE;
@@ -401,6 +449,21 @@ b8 vulkan_renderer_backend_begin_frame(renderer_backend* backend, f32 delta_time
         command_buffer,
         &context.main_renderpass,
         context.swapchain.framebuffers[context.image_index].handle);
+
+    // TODO: temporary test code
+    vulkan_object_shader_use(&context, &context.object_shader);
+
+    // Bind vertex buffer at offset.
+    VkDeviceSize offsets[1] = {0};
+    vkCmdBindVertexBuffers(command_buffer->handle, 0, 1, &context.object_vertex_buffer.handle, (VkDeviceSize*)offsets);
+
+    // Bind index buffer at offset.
+    //TODO: Primer error
+    vkCmdBindIndexBuffer(command_buffer->handle, context.object_index_buffer.handle, 0, VK_INDEX_TYPE_UINT32);
+
+    // Issue the draw.
+    vkCmdDrawIndexed(command_buffer->handle, 3, 1, 0, 0, 0);
+    // TODO: end temporary test code
 
     return TRUE;
 }
@@ -637,8 +700,8 @@ b8 create_buffers(vulkan_context* context) {
     VkMemoryPropertyFlagBits memory_property_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
     const u64 vertex_buffer_size = sizeof(vertex_3d) * 1024 * 1024;
-    const VkBufferUsageFlagBits usage = 
-    (VkBufferUsageFlagBits)(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    const VkBufferUsageFlagBits usage =
+        (VkBufferUsageFlagBits)(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
     if (!vulkan_buffer_create(
             context,
             vertex_buffer_size,
@@ -664,5 +727,5 @@ b8 create_buffers(vulkan_context* context) {
     }
     context->geometry_index_offset = 0;
 
-return true;
+    return true;
 }
