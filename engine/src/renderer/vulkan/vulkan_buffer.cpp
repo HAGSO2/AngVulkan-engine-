@@ -19,7 +19,7 @@ b8 vulkan_buffer_create(
     out_buffer->total_size = size;
     out_buffer->usage = usage;
     out_buffer->memory_property_flags = memory_property_flags;
-    out_buffer->memory = {};
+    //out_buffer->memory = {};
 
     VkBufferCreateInfo buffer_info = {};
     buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -73,7 +73,6 @@ void vulkan_buffer_destroy(vulkan_context* context, vulkan_buffer* buffer) {
         buffer->handle = 0;
     }
     buffer->total_size = 0;
-    //WARN: Esto puede no estar bien destruido;
     buffer->usage = {};
     buffer->is_locked = FALSE;
 }

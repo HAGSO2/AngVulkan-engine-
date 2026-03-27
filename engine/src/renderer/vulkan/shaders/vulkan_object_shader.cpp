@@ -6,7 +6,7 @@
 #include "renderer/vulkan/vulkan_shader_utils.h"
 #include "renderer/vulkan/vulkan_pipeline.h"
 
-#define BUILTIN_SHADER_NAME_OBJECT "shader"
+#define BUILTIN_SHADER_NAME_OBJECT "Builtin.ObjectShader"
 
 b8 vulkan_object_shader_create(vulkan_context* context, vulkan_object_shader* out_shader) {
     // Shader module init per stage.

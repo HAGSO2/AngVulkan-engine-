@@ -41,11 +41,6 @@ void regenerate_framebuffers(renderer_backend* backend, vulkan_swapchain* swapch
 b8 recreate_swapchain(renderer_backend* backend);
 
 void upload_data_range(vulkan_context* context, VkCommandPool pool, VkFence fence, VkQueue queue, vulkan_buffer* buffer, u64 offset, u64 size, void* data) {
-    // if(!vulkan_buffer_allocate(buffer, size, out_offset)){
-    //     TERROR("upload_data_range failed to allocate from the given buffer!");
-    //     return FALSE;
-    // }
-
     // Create a host-visible staging buffer to upload to. Mark it as the source of the transfer.
     VkBufferUsageFlags flags = (VkBufferUsageFlags)(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     vulkan_buffer staging = {};
@@ -231,8 +226,8 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
     create_buffers(&context);
 
     // TODO: temporary test code
-    const u32 vert_count = 3;
-    vertex_3d verts[vert_count];
+    const u32 vert_count = 4;
+    vertex_3d verts[vert_count]{};
 
     verts[0].position.x = 0.0;
     verts[0].position.y = -0.5;
@@ -243,11 +238,11 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
     verts[2].position.x = 0;
     verts[2].position.y = 0.5;
 
-    // verts[3].position.x = 0.5;
-    // verts[3].position.y = -0.5;
+    verts[3].position.x = 0.5;
+    verts[3].position.y = -0.5;
 
-    const u32 index_count = 3;
-    u32 indices[index_count] = {0, 1, 2};
+    const u32 index_count = 6;
+    u32 indices[index_count] = {0, 1, 2, 0, 3, 1};
 
     upload_data_range(&context, context.device.graphics_command_pool, 0, context.device.graphics_queue, &context.object_vertex_buffer, 0, sizeof(vertex_3d) * vert_count, verts);
     upload_data_range(&context, context.device.graphics_command_pool, 0, context.device.graphics_queue, &context.object_index_buffer, 0, sizeof(u32) * index_count, indices);
@@ -464,7 +459,7 @@ b8 vulkan_renderer_backend_begin_frame(renderer_backend* backend, f32 delta_time
     vkCmdBindIndexBuffer(command_buffer->handle, context.object_index_buffer.handle, 0, VK_INDEX_TYPE_UINT32);
 
     // Issue the draw.
-    vkCmdDrawIndexed(command_buffer->handle, 3, 1, 0, 0, 0);
+    vkCmdDrawIndexed(command_buffer->handle, 6, 1, 0, 0, 0);
     // TODO: end temporary test code
 
     return TRUE;
