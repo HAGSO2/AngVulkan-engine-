@@ -267,6 +267,8 @@ void vulkan_renderer_backend_shutdown(renderer_backend* backend) {
 
     vulkan_buffer_destroy(&context, &context.object_vertex_buffer);
     vulkan_buffer_destroy(&context, &context.object_index_buffer);
+    vulkan_fence_destroy(&context, &context.vertex_fence);
+    vulkan_fence_destroy(&context, &context.index_fence);
 
     vulkan_object_shader_destroy(&context, &context.object_shader);
 
@@ -700,7 +702,7 @@ b8 create_buffers(vulkan_context* context) {
     VkMemoryPropertyFlagBits memory_property_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
     const u64 vertex_buffer_size = sizeof(vertex_3d) * 1024 * 1024;
-    const VkBufferUsageFlagBits usage =
+    VkBufferUsageFlagBits usage =
         (VkBufferUsageFlagBits)(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
     if (!vulkan_buffer_create(
             context,
@@ -715,6 +717,8 @@ b8 create_buffers(vulkan_context* context) {
     context->geometry_vertex_offset = 0;
 
     const u64 index_buffer_size = sizeof(u32) * 1024 * 1024;
+    usage =
+        (VkBufferUsageFlagBits)(VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
     if (!vulkan_buffer_create(
             context,
             index_buffer_size,
