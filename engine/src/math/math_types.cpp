@@ -1,4 +1,4 @@
-#include "math_types.h"
+#include "math/math_types.h"
 #include "kmath.h"
 
 // ------------------------------------------
@@ -76,13 +76,7 @@ KINLINE f32 vec3::distance(vec3 b) {
 #pragma region Vector 4
 // ------------------------------------------
 
-KINLINE void vec4::normalize() {
-    f32 lenght = ksqrt(length_squared());
-    x /= lenght;
-    y /= lenght;
-    z /= lenght;
-    w /= lenght;
-}
+
 
 KSINLINE f32 vec4_dot_f32(
     f32 a0, f32 a1, f32 a2, f32 a3,
@@ -316,13 +310,9 @@ KINLINE mat4 mat4::inverse() {
     return out_matrix;
 }
 
-KSINLINE mat4 mat4_translation(vec3 position) {
-    mat4 out_matrix = mat4::identity();
-    out_matrix.data[12] = position.x;
-    out_matrix.data[13] = position.y;
-    out_matrix.data[14] = position.z;
-    return out_matrix;
-}
+// KINLINE mat4 mat4::translation(vec3 position) {
+    
+// }
 
 KINLINE mat4 mat4::scale(vec3 scale) {
     mat4 out_matrix = mat4::identity();
@@ -384,31 +374,9 @@ KINLINE mat4 mat4::euler_xyz(f32 x_radians, f32 y_radians, f32 z_radians) {
 #pragma region Quaternion
 // ------------------------------------------
 
-KINLINE quat quat::mult(quat q_0, quat q_1) {
-    quat out_quaternion;
-
-    out_quaternion.x = q_0.x * q_1.w +
-                       q_0.y * q_1.z -
-                       q_0.z * q_1.y +
-                       q_0.w * q_1.x;
-
-    out_quaternion.y = -q_0.x * q_1.z +
-                       q_0.y * q_1.w +
-                       q_0.z * q_1.x +
-                       q_0.w * q_1.y;
-
-    out_quaternion.z = q_0.x * q_1.y -
-                       q_0.y * q_1.x +
-                       q_0.z * q_1.w +
-                       q_0.w * q_1.z;
-
-    out_quaternion.w = -q_0.x * q_1.x -
-                       q_0.y * q_1.y -
-                       q_0.z * q_1.z +
-                       q_0.w * q_1.w;
-
-    return out_quaternion;
-}
+// KINLINE quat quat::mult(quat q_0, quat q_1) {
+    
+// }
 
 KINLINE f32 quat::dot(quat q_1) {
     return x * q_1.x +

@@ -455,7 +455,7 @@ b8 vulkan_renderer_backend_begin_frame(renderer_backend* backend, f32 delta_time
     vkCmdBindVertexBuffers(command_buffer->handle, 0, 1, &context.object_vertex_buffer.handle, (VkDeviceSize*)offsets);
 
     // Bind index buffer at offset.
-    //TODO: Primer error
+    // TODO: Primer error
     vkCmdBindIndexBuffer(command_buffer->handle, context.object_index_buffer.handle, 0, VK_INDEX_TYPE_UINT32);
 
     // Issue the draw.
@@ -464,6 +464,21 @@ b8 vulkan_renderer_backend_begin_frame(renderer_backend* backend, f32 delta_time
 
     return TRUE;
 }
+
+#pragma region Update globas state
+void vulkan_renderer_update_global_state(mat4 projection, mat4 view, vec3 view_position, vec4 ambient_colour, i32 mode) {
+    vulkan_command_buffer* command_buffer = &context.graphics_command_buffers[context.image_index];
+
+    vulkan_object_shader_use(&context, &context.object_shader);
+
+    context.object_shader.global_ubo.projection = projection;
+    context.object_shader.global_ubo.view = view;
+
+    // TODO: other ubo properties
+
+    vulkan_object_shader_update_global_state(&context, &context.object_shader);
+}
+#pragma endregion
 
 #pragma endregion
 
