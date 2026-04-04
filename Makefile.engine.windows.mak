@@ -5,7 +5,7 @@ OBJ_DIR := obj
 ASSEMBLY := engine
 EXTENSION := .dll
 CXX := g++
-COMPILER_FLAGS := -std=c++17 -g -MD -Werror=vla# -fdeclspec -fPIC
+COMPILER_FLAGS := -std=c++17 -g -MD -Werror=vla -fdeclspec -fPIC
 INCLUDE_FLAGS := -Iengine\src -I$(VULKAN_SDK)\include
 LINKER_FLAGS := -g -shared -luser32 -lvulkan-1 -L$(VULKAN_SDK)\Lib -L$(OBJ_DIR)\engine
 DEFINES := -D_DEBUG -DKEXPORT -D_CRT_SECURE_NO_WARNINGS
@@ -13,9 +13,9 @@ DEFINES := -D_DEBUG -DKEXPORT -D_CRT_SECURE_NO_WARNINGS
 # Make does not offer a recursive wildcard function, so here's one:
 rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
 
-SRC_FILES := $(call rwildcard,$(ASSEMBLY)/,*.cpp) # Get all .cpp files
+SRC_FILES := $(call rwildcard,$(ASSEMBLY)\,*.cpp) # Get all .cpp files
 DIRECTORIES := \$(ASSEMBLY)\src $(subst $(DIR),,$(shell dir $(ASSEMBLY)\src /S /AD /B | findstr /i src)) # Get all directories under src.
-OBJ_FILES := $(SRC_FILES:%=$(OBJ_DIR)/%.o) # Get all compiled .cpp.o objects for engine
+OBJ_FILES := $(SRC_FILES:%=$(OBJ_DIR)\%.o) # Get all compiled .cpp.o objects for engine
 
 all: scaffold compile link
 

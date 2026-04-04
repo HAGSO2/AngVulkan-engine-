@@ -4,8 +4,10 @@
 #if KPLATFORM_WINDOWS
 
 #include "core/logger.h"
+#include "core/event.h"
 #include "core/input.h"
 
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <windowsx.h>  // param input extraction
 #include <stdlib.h>

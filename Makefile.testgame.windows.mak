@@ -4,18 +4,18 @@ OBJ_DIR := obj
 
 ASSEMBLY := testgame
 EXTENSION := .exe
-CXX := g++
+CXX := clang++
 COMPILER_FLAGS := -std=c++17 -g -MD -Werror=vla -Wno-missing-braces -fdeclspec #-fPIC
 INCLUDE_FLAGS := -Iengine\src -Itestgame\src 
-LINKER_FLAGS := -g -lengine -L$(OBJ_DIR)\engine -L$(BUILD_DIR) #-Wl,-rpath,.
+LINKER_FLAGS := -g -mconsole -lengine -L$(OBJ_DIR)\engine -L$(BUILD_DIR) #-Wl,-rpath,.
 DEFINES := -D_DEBUG -DKIMPORT
 
 # Make does not offer a recursive wildcard function, so here's one:
 rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
 
-SRC_FILES := $(call rwildcard,$(ASSEMBLY)/,*.cpp) # Get all .cpp files
+SRC_FILES := $(call rwildcard,$(ASSEMBLY)\,*.cpp) # Get all .cpp files
 DIRECTORIES := \$(ASSEMBLY)\src $(subst $(DIR),,$(shell dir $(ASSEMBLY)\src /S /AD /B | findstr /i src)) # Get all directories under src.
-OBJ_FILES := $(SRC_FILES:%=$(OBJ_DIR)/%.o) # Get all compiled .cpp.o objects for tesbed
+OBJ_FILES := $(SRC_FILES:%=$(OBJ_DIR)\%.o) # Get all compiled .cpp.o objects for tesbed
 
 all: scaffold compile link
 

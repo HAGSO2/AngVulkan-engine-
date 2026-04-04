@@ -9,17 +9,18 @@ ECHO "Building everything..."
 @REM POPD
 @REM IF %ERRORLEVEL% NEQ 0 (echo Error:%ERRORLEVEL% && exit)
 
-@REM PUSHD testgame
-@REM CALL build.bat
-@REM POPD
-@REM IF %ERRORLEVEL% NEQ 0 (echo Error:%ERRORLEVEL% && exit)
+
 
 REM Engine
 make -f "Makefile.engine.windows.mak" all
 IF %ERRORLEVEL% NEQ 0 (echo Error:%ERRORLEVEL% && exit)
 
 REM Testgame
-make -f "Makefile.testgame.windows.mak" all
+PUSHD testgame
+CALL build.bat
+POPD
+REM IF %ERRORLEVEL% NEQ 0 (echo Error:%ERRORLEVEL% && exit)
+@make -f "Makefile.testgame.windows.mak" all
 IF %ERRORLEVEL% NEQ 0 (echo Error:%ERRORLEVEL% && exit)
 
 ECHO "All assemblies built successfully."
