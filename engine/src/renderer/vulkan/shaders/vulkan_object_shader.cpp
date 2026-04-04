@@ -41,7 +41,7 @@ b8 vulkan_object_shader_create(vulkan_context* context, vulkan_object_shader* ou
     global_pool_size.descriptorCount = context->swapchain.image_count;
 
     VkDescriptorPoolCreateInfo global_pool_info = {};
-    global_layout_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    global_pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     global_pool_info.poolSizeCount = 1;
     global_pool_info.pPoolSizes = &global_pool_size;
     global_pool_info.maxSets = context->swapchain.image_count;

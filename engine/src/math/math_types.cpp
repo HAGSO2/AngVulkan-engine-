@@ -113,15 +113,6 @@ KINLINE f32 vec4::distance(vec4 b) {
 #pragma region Matrix 4
 // ------------------------------------------
 
-KINLINE mat4 mat4::identity() {
-    mat4 out_matrix;
-    out_matrix.data[0] = 1.0f;
-    out_matrix.data[5] = 1.0f;
-    out_matrix.data[10] = 1.0f;
-    out_matrix.data[15] = 1.0f;
-    return out_matrix;
-}
-
 KINLINE vec3 mat4::backward() {
     vec3 backward;
     backward.x = data[2];
@@ -184,17 +175,6 @@ KINLINE mat4 mat4::orthographic(f32 left, f32 right, f32 bottom, f32 top, f32 ne
     out_matrix.data[12] = (left + right) * lr;
     out_matrix.data[13] = (top + bottom) * bt;
     out_matrix.data[14] = (far_clip + near_clip) * nf;
-    return out_matrix;
-}
-
-KINLINE mat4 mat4::perspective(f32 fov_radians, f32 aspect_ratio, f32 near_clip, f32 far_clip) {
-    f32 half_tan_fov = ktan(fov_radians * 0.5f);
-    mat4 out_matrix;
-    out_matrix.data[0] = 1.0f / (aspect_ratio * half_tan_fov);
-    out_matrix.data[5] = 1.0f / half_tan_fov;
-    out_matrix.data[10] = -((far_clip + near_clip) / (far_clip - near_clip));
-    out_matrix.data[11] = -1.0f;
-    out_matrix.data[14] = -((2.0f * far_clip * near_clip) / (far_clip - near_clip));
     return out_matrix;
 }
 

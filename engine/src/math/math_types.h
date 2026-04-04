@@ -304,7 +304,14 @@ struct vec4 {
 struct mat4 {
     f32 data[16];
 
-    KSINLINE mat4 identity();
+    KSINLINE mat4 identity() {
+        mat4 out_matrix;
+        out_matrix.data[0] = 1.0f;
+        out_matrix.data[5] = 1.0f;
+        out_matrix.data[10] = 1.0f;
+        out_matrix.data[15] = 1.0f;
+        return out_matrix;
+    }
     /**
      * @brief Returns a backward vector relative to the provided matrix.
      *
@@ -356,7 +363,16 @@ struct mat4 {
      * @param far_clip The far clipping plane distance.
      * @return A new perspective matrix.
      */
-    KSINLINE mat4 perspective(f32 fov_radians, f32 aspect_ratio, f32 near_clip, f32 far_clip);
+    KSINLINE mat4 perspective(f32 fov_radians, f32 aspect_ratio, f32 near_clip, f32 far_clip) {
+        f32 half_tan_fov = ktan(fov_radians * 0.5f);
+        mat4 out_matrix;
+        out_matrix.data[0] = 1.0f / (aspect_ratio * half_tan_fov);
+        out_matrix.data[5] = 1.0f / half_tan_fov;
+        out_matrix.data[10] = -((far_clip + near_clip) / (far_clip - near_clip));
+        out_matrix.data[11] = -1.0f;
+        out_matrix.data[14] = -((2.0f * far_clip * near_clip) / (far_clip - near_clip));
+        return out_matrix;
+    }
     /**
      * @brief Creates and returns a look-at matrix, or a matrix looking
      * at target from the perspective of position.
