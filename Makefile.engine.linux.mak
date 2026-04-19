@@ -8,7 +8,6 @@ CXX := clang++
 COMPILER_FLAGS := -std=c++17 -g -MD -Werror=vla -fdeclspec -fPIC
 INCLUDE_FLAGS := -Iengine/src -I$(VULKAN_SDK)/include
 LINKER_FLAGS := -g -shared -lvulkan -lxcb -lX11 -lX11-xcb -lm -lxkbcommon -L$(VULKAN_SDK)/Lib -L/usr/X11R6/lib
-#, -rpath ,'$$ORIGIN'
 DEFINES := -D_DEBUG -DTEXPORT -D_CTR_SECURE_NO_WARNINGS
 
 # Make does not offer a recursive wildcard function, so here's one:

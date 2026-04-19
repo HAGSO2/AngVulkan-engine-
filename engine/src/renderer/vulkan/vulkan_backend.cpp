@@ -450,6 +450,16 @@ b8 vulkan_renderer_backend_begin_frame(renderer_backend* backend, f32 delta_time
     // TODO: temporary test code
     vulkan_object_shader_use(&context, &context.object_shader);
 
+    vkCmdBindDescriptorSets(
+        command_buffer->handle,
+        VK_PIPELINE_BIND_POINT_GRAPHICS,
+        context.object_shader.pipeline.pipeline_layout,
+        0,  // set index
+        3,  // count
+        context.object_shader.global_descriptor_sets,
+        0,
+        nullptr);
+
     // Bind vertex buffer at offset.
     VkDeviceSize offsets[1] = {0};
     vkCmdBindVertexBuffers(command_buffer->handle, 0, 1, &context.object_vertex_buffer.handle, (VkDeviceSize*)offsets);
