@@ -32,14 +32,14 @@ void renderer_shutdown() {
 }
 
 b8 renderer_begin_frame(f32 delta_time) {
-    if(!backend){
+    if (!backend) {
         return FALSE;
     }
     return backend->begin_frame(backend, delta_time);
 }
 
 b8 renderer_end_frame(f32 delta_time) {
-    if(!backend){
+    if (!backend) {
         return FALSE;
     }
     b8 result = backend->end_frame(backend, delta_time);
@@ -59,9 +59,19 @@ b8 renderer_draw_frame(render_packet* packet) {
     // If the begin frame returned successfully, mid-frame operations may continue.
     if (renderer_begin_frame(packet->delta_time)) {
         mat4 projection = mat4::perspective(deg_to_rad(45.0f), 1280 / 720.0f, 0.1f, 1000.0f);
-        static f32 z = -1.0f;
-        z -= 0.005f;
-        mat4 view = mat4::translation((vec3){0, 0, z});
+        static f32 z = 0.0f;
+        z += 0.01f;
+        mat4 view = mat4::translation((vec3){0, 0, z});  // -30.0f
+        view = view.inverse();
+
+        backend->update_global_state(projection, view, vec3::zero(), vec4::one(), 0);
+
+        // mat4 model = mat4_translation((vec3){0, 0, 0});
+        static f32 angle = 0.01f;
+        angle += 0.001f;
+        quat rotation = quat::from_axis_angle(vec3::forward(), angle, false);
+        mat4 model = to_rotation_mat4(rotation, vec3::zero());
+        backend->update_object(model);
 
         backend->update_global_state(projection, view, vec3::zero(), vec4::one(), 0);
 
