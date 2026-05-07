@@ -314,6 +314,13 @@ struct mat4 {
         return out_matrix;
     }
     /**
+     * @brief Returns a forward vector relative to the provided matrix.
+     *
+     * @param matrix The matrix from which to base the vector.
+     * @return A 3-component directional vector.
+     */
+    KINLINE vec3 forward();
+    /**
      * @brief Returns a backward vector relative to the provided matrix.
      *
      * @param matrix The matrix from which to base the vector.
@@ -327,6 +334,20 @@ struct mat4 {
      * @return A 3-component directional vector.
      */
     KINLINE vec3 up();
+    /**
+     * @brief Returns a downward vector relative to the provided matrix.
+     *
+     * @param matrix The matrix from which to base the vector.
+     * @return A 3-component directional vector.
+     */
+    KINLINE vec3 down();
+    /**
+     * @brief Returns a left vector relative to the provided matrix.
+     *
+     * @param matrix The matrix from which to base the vector.
+     * @return A 3-component directional vector.
+     */
+    KINLINE vec3 left();
     /**
      * @brief Returns a right vector relative to the provided matrix.
      *

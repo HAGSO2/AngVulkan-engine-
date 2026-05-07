@@ -113,6 +113,15 @@ KINLINE f32 vec4::distance(vec4 b) {
 #pragma region Matrix 4
 // ------------------------------------------
 
+KINLINE vec3 mat4::forward() {
+    vec3 forward;
+    forward.x = -data[2];
+    forward.y = -data[6];
+    forward.z = -data[10];
+    forward.normalize();
+    return forward;
+}
+
 KINLINE vec3 mat4::backward() {
     vec3 backward;
     backward.x = data[2];
@@ -129,6 +138,24 @@ KINLINE vec3 mat4::up() {
     up.z = data[9];
     up.normalize();
     return up;
+}
+
+KINLINE vec3 mat4::down() {
+    vec3 down;
+    down.x = -data[1];
+    down.y = -data[5];
+    down.z = -data[9];
+    down.normalize();
+    return down;
+}
+
+KINLINE vec3 mat4::left() {
+    vec3 left;
+    left.x = -data[0];
+    left.y = -data[4];
+    left.z = -data[8];
+    left.normalize();
+    return left;
 }
 
 KINLINE vec3 mat4::right() {
