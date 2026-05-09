@@ -148,8 +148,7 @@ void vulkan_image_copy_from_buffer(
     VkBuffer buffer,
     vulkan_command_buffer* command_buffer) {
     // Region to copy
-    VkBufferImageCopy region;
-    kzero_memory(&region, sizeof(VkBufferImageCopy));
+    VkBufferImageCopy region = VkBufferImageCopy{};
     region.bufferOffset = 0;
     region.bufferRowLength = 0;
     region.bufferImageHeight = 0;
@@ -171,7 +170,6 @@ void vulkan_image_copy_from_buffer(
         1,
         &region);
 }
-
 
 void vulkan_image_destroy(vulkan_context* context, vulkan_image* image) {
     if (image->view) {

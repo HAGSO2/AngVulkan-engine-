@@ -798,7 +798,7 @@ void vulkan_renderer_create_texture(const char* name, b8 auto_release, i32 width
     VkFormat image_format = VK_FORMAT_R8G8B8A8_UNORM;
 
     // Create a staging buffer and load data into it.
-    VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    VkBufferUsageFlagBits usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
     VkMemoryPropertyFlags memory_prop_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     vulkan_buffer staging;
     vulkan_buffer_create(&context, image_size, usage, memory_prop_flags, true, &staging);
