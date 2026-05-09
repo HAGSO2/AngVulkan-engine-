@@ -5,6 +5,7 @@
 #include "core/application.h"
 #include "config/renderer_options.h"
 #include "math/math_types.h"
+#include "resources/resource_types.h"
 
 typedef enum renderer_backend_type {
     RENDERER_BACKEND_TYPE_VULKAN,
